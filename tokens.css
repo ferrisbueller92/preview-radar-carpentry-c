@@ -1,0 +1,40 @@
+/* RADAR Carpentry — Concept 3 ("Level-Up grade")
+   Navy-dominant, photo-forward, Poppins. Single forest-green accent (their single red). */
+:root{
+  /* navy field */
+  --navy:#0E1C30;
+  --navy-900:#091523;
+  --navy-800:#142a45;
+  --navy-700:#1d3858;
+  --navy-line:rgba(244,246,248,.14);
+
+  /* light */
+  --paper:#FFFFFF;
+  --bone:#F4F4F1;
+
+  /* single accent — forest green (their logo) */
+  --green:#2E8B5F;
+  --green-bright:#42B07C;
+  --green-deep:#1F6446;
+
+  /* ink on light */
+  --ink:#14202B;
+  --ink-soft:#43505C;
+  --muted-l:#7A8794;
+
+  /* on navy */
+  --on-dark:#F4F6F8;
+  --on-dark-soft:rgba(244,246,248,.78);
+  --on-dark-mute:rgba(244,246,248,.52);
+
+  --maxw:1280px;
+  --r:6px;
+  --r-lg:14px;
+  --shadow:0 30px 70px rgba(5,12,22,.5);
+
+  --f-display:"Poppins",system-ui,-apple-system,sans-serif;
+  --f-body:"Inter",system-ui,-apple-system,sans-serif;
+  --f-mono:"Space Mono","SFMono-Regular",ui-monospace,monospace;
+
+  --ease:cubic-bezier(.22,1,.36,1);
+}
