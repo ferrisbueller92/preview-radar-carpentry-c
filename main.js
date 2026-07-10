@@ -106,3 +106,40 @@
     if (note) note.textContent = 'Opening your email app — just hit send and we’ll be in touch.';
   });
 })();
+
+/* RADAR reviews carousel */
+;(function(){
+  document.querySelectorAll('.reviews-carousel').forEach(function(root){
+    var track=root.querySelector('.rc-track'); if(!track) return;
+    var cards=Array.prototype.slice.call(track.children); if(!cards.length) return;
+    var prev=root.querySelector('.rc-prev'), next=root.querySelector('.rc-next'), vp=root.querySelector('.rc-viewport');
+    var i=Math.min(1,cards.length-1);
+    function layout(){
+      var cw=cards[0].getBoundingClientRect().width;
+      var gap=parseFloat(getComputedStyle(track).gap)||24;
+      var off=(vp.clientWidth-cw)/2;
+      track.style.transform='translateX('+(off-i*(cw+gap))+'px)';
+      cards.forEach(function(c,idx){var d=Math.abs(idx-i);c.classList.toggle('is-active',d===0);c.classList.toggle('is-near',d===1);});
+      if(prev) prev.disabled=i<=0; if(next) next.disabled=i>=cards.length-1;
+    }
+    if(prev) prev.addEventListener('click',function(){if(i>0){i--;layout();}});
+    if(next) next.addEventListener('click',function(){if(i<cards.length-1){i++;layout();}});
+    window.addEventListener('resize',layout);
+    setTimeout(layout,120); layout();
+  });
+})();
+
+/* tile videos: play only in view, respect reduced motion */
+;(function(){
+  var vids=document.querySelectorAll('.tile-video'); if(!vids.length) return;
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){ vids.forEach(function(v){ v.removeAttribute('autoplay'); v.pause(); }); return; }
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      var v=e.target; v.muted=true;
+      if(e.isIntersecting){ var p=v.play(); if(p&&p.catch) p.catch(function(){}); }
+      else v.pause();
+    });
+  },{threshold:.15});
+  vids.forEach(function(v){ io.observe(v); });
+})();
