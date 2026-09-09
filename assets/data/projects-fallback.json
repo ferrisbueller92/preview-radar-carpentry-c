@@ -1,0 +1,11 @@
+{
+  "note": "Real RADAR project stills (their own photos, captions as verified in Round 1). Shown in the Projects strip whenever the Instagram feed has no posts, so the section always shows their work.",
+  "items": [
+    {"permalink": "projects.html", "image": "assets/images/structural-detail.jpg", "title": "Heritage Extension", "meta": "Toorak, VIC", "alt": "In-situ columns and beams on a heritage home extension in Toorak"},
+    {"permalink": "projects.html", "image": "assets/images/optometrist-fitout.jpg", "title": "Optometrist Refit", "meta": "Chapel St · Commercial", "alt": "Completed Chapel Street optometrist commercial fit-out"},
+    {"permalink": "projects.html", "image": "assets/images/floor-framing.jpg", "title": "New Build", "meta": "Frame stage", "alt": "Aerial of timber floor framing on a new build"},
+    {"permalink": "projects.html", "image": "assets/images/cladding.jpg", "title": "External Cladding", "meta": "Residential", "alt": "External cladding on a Melbourne home"},
+    {"permalink": "projects.html", "image": "assets/images/deck-framing.jpg", "title": "Timber Deck", "meta": "Decking", "alt": "Timber deck framing under construction"},
+    {"permalink": "projects.html", "image": "assets/images/team-onsite.jpg", "title": "The RADAR Team", "meta": "On site", "alt": "The RADAR Carpentry team on site"}
+  ]
+}

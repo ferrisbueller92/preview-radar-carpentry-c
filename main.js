@@ -2,6 +2,7 @@
    Lenis smooth scroll · Swiper hero · GSAP ScrollTrigger spine + parallax · IO reveals */
 (function () {
   'use strict';
+  window.__radarReady = true; /* the head watchdog drops html.js if this never runs (slow or blocked CDN) */
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var hasGSAP = typeof window.gsap !== 'undefined' && typeof window.ScrollTrigger !== 'undefined';
 
@@ -34,21 +35,71 @@
     }
   }
 
-  /* ---------- hero carousel ---------- */
-  if (typeof window.Swiper !== 'undefined' && document.querySelector('.hero-swiper')) {
+  /* ---------- hero carousel: Beth's drone clips (Round 2) ----------
+     Each slide is a muted looping video. Sources are chosen per viewport (desktop = 16:9 band,
+     phone = full portrait frame), HEVC first with H.264 fallback. Only the active slide plays; the
+     next slide warms up while the current one runs. Reduced motion = posters only, nothing plays. */
+  var heroEl = document.querySelector('.hero-swiper');
+  if (typeof window.Swiper !== 'undefined' && heroEl) {
+    var narrow = window.matchMedia('(max-width: 768px)').matches;
+    var heroVids = Array.prototype.slice.call(heroEl.querySelectorAll('video.hero-video'));
+    heroVids.forEach(function (v, i) {
+      var base = v.getAttribute(narrow ? 'data-mobile' : 'data-desktop');
+      var poster = v.getAttribute(narrow ? 'data-poster-mobile' : 'data-poster-desktop');
+      if (poster) v.setAttribute('poster', poster);
+      v.muted = true; v.loop = true; v.playsInline = true;
+      v.setAttribute('preload', i === 0 && !reduce ? 'auto' : 'none');
+      if (!reduce && base) {
+        [['hevc', 'video/mp4; codecs="hvc1"'], ['h264', 'video/mp4']].forEach(function (s) {
+          var el = document.createElement('source'); el.src = base + '.' + s[0] + '.mp4'; el.type = s[1]; v.appendChild(el);
+        });
+      }
+    });
+    var warm = function (v) { if (v && v.getAttribute('preload') === 'none') { v.setAttribute('preload', 'auto'); v.load(); } };
+    var playActive = function (s) {
+      if (reduce) return;
+      var active = s.slides[s.activeIndex];
+      heroVids.forEach(function (v) {
+        if (active && active.contains(v)) {
+          warm(v); try { v.currentTime = 0; } catch (e) {}
+          var p = v.play(); if (p && p.catch) p.catch(function () {});
+        } else if (!v.paused) { v.pause(); }
+      });
+      var next = s.slides[(s.activeIndex + 1) % s.slides.length];
+      if (next) warm(next.querySelector('video'));
+    };
     var bullets = Array.prototype.slice.call(document.querySelectorAll('.hero-pag .bullet'));
+    var pauseBtn = document.getElementById('heroPause');
+    var heroPaused = false;
     var sw = new Swiper('.hero-swiper', {
       effect: 'fade', fadeEffect: { crossFade: true }, loop: true, speed: 1200, allowTouchMove: true,
-      autoplay: reduce ? false : { delay: 5000, disableOnInteraction: false, pauseOnMouseEnter: true },
-      a11y: { prevSlideMessage: 'Previous project', nextSlideMessage: 'Next project' },
+      autoplay: reduce ? false : { delay: 7000, disableOnInteraction: false, pauseOnMouseEnter: false },
+      a11y: { prevSlideMessage: 'Previous clip', nextSlideMessage: 'Next clip' },
       on: {
+        init: function () { if (!heroPaused) playActive(this); },
+        slideChangeTransitionStart: function () { if (!heroPaused) playActive(this); },
         slideChange: function () {
           var i = this.realIndex;
-          bullets.forEach(function (b, n) { b.classList.toggle('is-active', n === i); });
+          bullets.forEach(function (b, n) {
+            var on = n === i; b.classList.toggle('is-active', on);
+            if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+          });
         }
       }
     });
     bullets.forEach(function (b, n) { b.addEventListener('click', function () { sw.slideToLoop(n); }); });
+    /* a real pause control: stops the rotation and the playing clip; play resumes both (WCAG 2.2.2) */
+    if (pauseBtn) {
+      if (reduce) { pauseBtn.hidden = true; }
+      pauseBtn.addEventListener('click', function () {
+        heroPaused = !heroPaused;
+        pauseBtn.classList.toggle('is-paused', heroPaused);
+        pauseBtn.setAttribute('aria-pressed', String(heroPaused));
+        pauseBtn.setAttribute('aria-label', heroPaused ? 'Play the clips' : 'Pause the clips');
+        if (heroPaused) { if (sw.autoplay) sw.autoplay.stop(); heroVids.forEach(function (v) { v.pause(); }); }
+        else { if (sw.autoplay) sw.autoplay.start(); playActive(sw); }
+      });
+    }
   }
 
   /* ---------- GSAP: scroll-line spine + media parallax ---------- */
@@ -79,19 +130,34 @@
     }
   }
 
-  /* ---------- reveals (IntersectionObserver) ---------- */
-  var reveals = document.querySelectorAll('[data-reveal],[data-clip]');
-  if (reduce) {
-    reveals.forEach(function (el) { el.classList.add('in'); });
-  } else if ('IntersectionObserver' in window) {
+  /* ---------- reveals (IntersectionObserver) ----------
+     A clip reveal (clip-path:inset) has an EMPTY intersection box, so the clipped element itself
+     never intersects. Observe its wrapper instead, and keep a 1 s in-viewport fail-safe so nothing
+     can stay hidden. Without JS (no html.js class) every reveal is visible from the start. */
+  var reveals = Array.prototype.slice.call(document.querySelectorAll('[data-reveal],[data-clip]'));
+  function show(el) { el.classList.add('in'); }
+  if (reduce || !('IntersectionObserver' in window)) {
+    reveals.forEach(show);
+  } else {
+    var pending = reveals.slice();
+    var done = function (el) { show(el); var i = pending.indexOf(el); if (i > -1) pending.splice(i, 1); };
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
-        if (entry.isIntersecting) { entry.target.classList.add('in'); io.unobserve(entry.target); }
+        if (!entry.isIntersecting) return;
+        var t = entry.target;
+        if (t.hasAttribute('data-reveal') || t.hasAttribute('data-clip')) done(t);
+        Array.prototype.forEach.call(t.querySelectorAll('[data-clip]'), done);
+        io.unobserve(t);
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
-    reveals.forEach(function (el) { io.observe(el); });
-  } else {
-    reveals.forEach(function (el) { el.classList.add('in'); });
+    reveals.forEach(function (el) { io.observe(el.hasAttribute('data-clip') ? el.parentElement : el); });
+    var guard = setInterval(function () {
+      pending.slice().forEach(function (el) {
+        var r = el.getBoundingClientRect();
+        if (r.bottom > 0 && r.top < window.innerHeight * 0.92) done(el);
+      });
+      if (!pending.length) clearInterval(guard);
+    }, 1000);
   }
 
   /* ---------- contact form (mailto) ---------- */
@@ -131,7 +197,7 @@
 
 /* tile videos: play only in view, respect reduced motion */
 ;(function(){
-  var vids=document.querySelectorAll('.tile-video'); if(!vids.length) return;
+  var vids=document.querySelectorAll('.tile-video,.inview-video'); if(!vids.length) return;
   var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduce){ vids.forEach(function(v){ v.removeAttribute('autoplay'); v.pause(); }); return; }
   var io=new IntersectionObserver(function(es){
@@ -142,4 +208,60 @@
     });
   },{threshold:.15});
   vids.forEach(function(v){ io.observe(v); });
+})();
+
+/* Projects strip (Round 2): Instagram posts from the Behold JSON feed when a feed URL is set, the snapshot JSON as the
+   fallback, her own project stills when neither has posts, and a designed empty state only if all of that fails.
+   The duplicate set that makes the loop seamless is hidden from assistive tech. The strip pauses off screen, on hover,
+   on focus, and on its own Pause button. ?ig=fixture loads the QA fixture (never in production markup). */
+;(function(){
+  var strip=document.getElementById('igStrip'); if(!strip) return;
+  var track=document.getElementById('igTrack'), empty=document.getElementById('igEmpty'), toggle=document.getElementById('igToggle');
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var feed=strip.getAttribute('data-feed')||'';
+  var snap=/[?&]ig=fixture(&|$)/.test(location.search)?'assets/data/ig-feed.fixture.json':strip.getAttribute('data-snapshot');
+  var fallback=strip.getAttribute('data-fallback')||'';
+  var GLYPH=empty?empty.querySelector('svg').outerHTML:'';
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function pick(p){ var s=p.sizes||{}; return (s.medium||s.large||s.full||s.small||{}).mediaUrl||p.thumbnailUrl||p.mediaUrl||''; }
+  function igCard(p){
+    var cap=(p.prunedCaption||p.caption||'').replace(/\s+/g,' ').trim();
+    if(cap.length>72) cap=cap.slice(0,69).replace(/\s+\S*$/,'')+'\u2026';
+    return '<a class="ig-card" href="'+esc(p.permalink)+'" target="_blank" rel="noopener"><img src="'+esc(pick(p))+'" alt="'+esc(p.altText||'Instagram post from RADAR Carpentry')+'" loading="lazy" width="700" height="700"><span class="ig-meta">'+GLYPH+'<span class="ig-cap">'+esc(cap)+'</span></span></a>';
+  }
+  function stillCard(p){
+    return '<a class="ig-card is-still" href="'+esc(p.permalink)+'"><img src="'+esc(p.image)+'" alt="'+esc(p.alt||p.title)+'" loading="lazy" width="700" height="700"><span class="ig-meta"><span class="ig-cap"><b>'+esc(p.title)+'</b><i>'+esc(p.meta||'')+'</i></span></span></a>';
+  }
+  function mount(html,count){
+    track.innerHTML=reduce?'<div class="ig-set">'+html+'</div>':'<div class="ig-set">'+html+'</div><div class="ig-set" aria-hidden="true">'+html.replace(/<a /g,'<a tabindex="-1" ')+'</div>';
+    strip.style.setProperty('--ig-dur',Math.max(30,count*8)+'s');
+    strip.classList.add('is-live');
+  }
+  function showEmpty(){ strip.classList.add('is-empty'); if(empty) empty.hidden=false; if(toggle) toggle.hidden=true; }
+  function renderPosts(data){
+    var posts=((data&&data.posts)||[]).filter(function(p){ return p&&p.permalink&&pick(p); });
+    if(!posts.length) return false;
+    mount(posts.map(igCard).join(''),posts.length); strip.classList.add('is-instagram'); return true;
+  }
+  function renderStills(data){
+    var items=((data&&data.items)||[]).filter(function(p){ return p&&p.image&&p.permalink; });
+    if(!items.length) return false;
+    mount(items.map(stillCard).join(''),items.length); return true;
+  }
+  function load(url){ return fetch(url,{cache:'no-store'}).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }); }
+  (feed?load(feed).catch(function(){ return load(snap); }):load(snap))
+    .then(function(d){ if(!renderPosts(d)) throw new Error('no posts'); return true; })
+    .catch(function(){ return fallback?load(fallback).then(renderStills):false; })
+    .then(function(ok){ if(!ok) showEmpty(); })
+    .catch(showEmpty);
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(es){ es.forEach(function(e){ strip.classList.toggle('is-inview',e.isIntersecting); }); },{threshold:.05}).observe(strip);
+  } else { strip.classList.add('is-inview'); }
+  if(toggle){
+    if(reduce) toggle.hidden=true;
+    toggle.addEventListener('click',function(){
+      var p=!strip.classList.contains('is-paused');
+      strip.classList.toggle('is-paused',p); toggle.setAttribute('aria-pressed',String(p)); toggle.textContent=p?'Play':'Pause';
+    });
+  }
 })();

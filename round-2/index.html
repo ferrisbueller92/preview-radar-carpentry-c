@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en-AU"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>RADAR Carpentry · What changed, round 2</title>
+<link rel="icon" type="image/png" href="../favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0E1C30;--navy-900:#091523;--navy-800:#142a45;--line:rgba(244,246,248,.14);--green:#2E8B5F;--green-b:#42B07C;--ink:#F4F6F8;--soft:rgba(244,246,248,.74);--mute:rgba(244,246,248,.5)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy-900);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:16px;padding:14px 22px;background:var(--navy);border-bottom:1px solid var(--line)}
+header img{height:40px} header h1{font-family:Poppins,sans-serif;font-size:15px;font-weight:600} header .sp{flex:1}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:transparent;color:var(--soft);border:0;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit}
+.seg button.on{background:var(--green);color:#fff}
+main{max-width:1400px;margin:0 auto;padding:26px 22px 80px}
+.intro{font-size:16px;color:var(--soft);max-width:70ch;margin-bottom:22px}
+.intro a{color:var(--green-b)}
+.row{display:grid;grid-template-columns:300px 1fr;gap:22px;padding:26px 0;border-top:1px solid var(--line)}
+.ask h2{font-family:Poppins,sans-serif;font-size:19px;font-weight:600;margin-bottom:10px} .you{font-size:13.5px;color:var(--soft);font-style:italic;margin-bottom:12px} .did{font-size:14.5px}
+.pair{display:none;grid-template-columns:1fr 1fr;gap:14px} .pair.on{display:grid} .pair.phone{grid-template-columns:repeat(auto-fit,minmax(200px,300px))}
+figure{background:var(--navy-800);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+figcaption{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);padding:8px 10px;border-bottom:1px solid var(--line)}
+figure img{display:block;width:100%;height:auto}
+.call{margin-top:34px;padding:22px 24px;border:1px solid var(--line);border-radius:10px;background:var(--navy-800)}
+.call h2{font-family:Poppins,sans-serif;font-size:17px;margin-bottom:10px} .call ol{padding-left:20px;color:var(--soft);font-size:14.5px} .call li{margin:6px 0}
+.stamp{margin-top:26px;font-size:12px;color:var(--mute)}
+@media (max-width:900px){.row{grid-template-columns:1fr} .pair{grid-template-columns:1fr} header h1{font-size:13px}}
+</style></head><body>
+<header><img src="../assets/images/radar-wordmark-ondark.png" alt="RADAR Carpentry"><h1>What changed, round 2</h1><span class="sp"></span>
+<div class="seg"><button class="on" data-w="desktop">Desktop</button><button data-w="phone">Phone</button></div></header>
+<main>
+<p class="intro">Beth, this is every note from your second deck, in your words, with the site before and after. The live site is at <a href="../">the same link as before</a>. The pictures on the left are how the page looked when you sent your notes; the pictures on the right are how it looks now. Switch to Phone at the top right to see the same on a phone.</p>
+
+        <section class="row">
+          <div class="ask"><h2>The tabs</h2><p class="you">You wrote: Top 4 tabs can we change to home / projects / services / get in touch</p><p class="did">Done. Home, Projects, Services, Get in touch. The same four sit in the footer.</p></div>
+          <div class="shots"><div class="pair desktop"><figure><figcaption>Before</figcaption><img src="img/baseline-index-1440-nav.jpg" alt="Before: nav" loading="lazy"></figure><figure><figcaption>After</figcaption><img src="img/after-index-1440-nav.jpg" alt="After: nav" loading="lazy"></figure></div><div class="pair phone"><figure><figcaption>Before</figcaption><img src="img/baseline-index-390-nav.jpg" alt="Before: nav" loading="lazy"></figure><figure><figcaption>After</figcaption><img src="img/after-index-390-nav.jpg" alt="After: nav" loading="lazy"></figure></div></div>
+        </section>
+        <section class="row">
+          <div class="ask"><h2>The hero</h2><p class="you">You wrote: I have sent some drone footage via WeTransfer, can we use this as the carousel media. And the new line: Specialists in delivering premium residential builds, renovations and extensions across Melbourne</p><p class="did">Done. Your five drone clips play in the hero, one after the other, muted. Because the footage is portrait, a desktop shows the middle band of each shot and a phone shows the full frame. Your line is in word for word. There is a small pause button in the corner for anyone who wants the picture to hold still.</p></div>
+          <div class="shots"><div class="pair desktop"><figure><figcaption>Before</figcaption><img src="img/baseline-index-1440-hero.jpg" alt="Before: hero" loading="lazy"></figure><figure><figcaption>After</figcaption><img src="img/after-index-1440-hero.jpg" alt="After: hero" loading="lazy"></figure></div><div class="pair phone"><figure><figcaption>Before</figcaption><img src="img/baseline-index-390-hero.jpg" alt="Before: hero" loading="lazy"></figure><figure><figcaption>After</figcaption><img src="img/after-index-390-hero.jpg" alt="After: hero" loading="lazy"></figure></div></div>
+        </section>
+        <section class="row">
+          <div class="ask"><h2>The logo</h2><p class="you">You wrote: The colour of the green in the logo looks slightly off vs the colour of the green text, prefer the colour of the text</p><p class="did">Done. Your new logo file is in, and its green is the same green as the headline.</p></div>
+          <div class="shots"><div class="pair desktop"><figure><figcaption>Before</figcaption><img src="img/baseline-index-1440-nav.jpg" alt="Before: nav" loading="lazy"></figure><figure><figcaption>After</figcaption><img src="img/after-index-1440-nav.jpg" alt="After: nav" loading="lazy"></figure></div><div class="pair phone"><figure><figcaption>Before</figcaption><img src="img/baseline-index-390-nav.jpg" alt="Before: nav" loading="lazy"></figure><figure><figcaption>After</figcaption><img src="img/after-index-390-nav.jpg" alt="After: nav" loading="lazy"></figure></div></div>
+        </section>
+        <section class="row">
+          <div class="ask"><h2>Why Radar</h2><p class="you">You wrote: Remove (the empty band). Change The trade to WHY RADAR. 18 years experience, across all areas of domestic and commercial carpentry. Replace this picture with the video called pergola build</p><p class="did">All done, with one confession. That band was meant to show your paragraph, We&#x27;re a team of carpenters, and it never displayed on your screen because of a fault on our side. Fixed. Your paragraph now sits here under Why Radar with your 18 years line, and the pergola clip plays beside it. The Instagram sticker is part of that clip, so it shows. If Kyle has the original without the sticker, send it and it swaps straight in. If you would rather the paragraph went altogether, say so and it goes.</p></div>
+          <div class="shots"><div class="pair desktop"><figure><figcaption>Before</figcaption><img src="img/baseline-index-1440-about.jpg" alt="Before: about" loading="lazy"></figure><figure><figcaption>After</figcaption><img src="img/after-index-1440-about.jpg" alt="After: about" loading="lazy"></figure></div><div class="pair phone"><figure><figcaption>Before</figcaption><img src="img/baseline-index-390-about.jpg" alt="Before: about" loading="lazy"></figure><figure><figcaption>After</figcaption><img src="img/after-index-390-about.jpg" alt="After: about" loading="lazy"></figure></div></div>
+        </section>
+        <section class="row">
+          <div class="ask"><h2>Projects</h2><p class="you">You wrote: Replace Recent projects around Melbourne with just PROJECTS. Can this be a rotating banner of Instagram feed uploads instead of the current videos, fed from Insta?</p><p class="did">Done. The heading is just Projects and the old videos are gone. The strip now rolls your real project photos, and it is built to fill itself from your Instagram once we connect your account, which is a couple of clicks we will do together on the call. After that, your latest posts appear here on their own.</p></div>
+          <div class="shots"><div class="pair desktop"><figure><figcaption>Before</figcaption><img src="img/baseline-index-1440-work.jpg" alt="Before: work" loading="lazy"></figure><figure><figcaption>After</figcaption><img src="img/after-index-1440-work.jpg" alt="After: work" loading="lazy"></figure></div><div class="pair phone"><figure><figcaption>Before</figcaption><img src="img/baseline-index-390-work.jpg" alt="Before: work" loading="lazy"></figure><figure><figcaption>After</figcaption><img src="img/after-index-390-work.jpg" alt="After: work" loading="lazy"></figure></div></div>
+        </section>
+        <section class="row">
+          <div class="ask"><h2>Contact</h2><p class="you">You wrote: Remove the text in yellow and re-centre the contact information. Remove request a quote and just say get in touch</p><p class="did">Done on the home page and on the contact page.</p></div>
+          <div class="shots"><div class="pair desktop"><figure><figcaption>Before</figcaption><img src="img/baseline-index-1440-contact.jpg" alt="Before: contact" loading="lazy"></figure><figure><figcaption>After</figcaption><img src="img/after-index-1440-contact.jpg" alt="After: contact" loading="lazy"></figure></div><div class="pair phone"><figure><figcaption>Before</figcaption><img src="img/baseline-index-390-contact.jpg" alt="Before: contact" loading="lazy"></figure><figure><figcaption>After</figcaption><img src="img/after-index-390-contact.jpg" alt="After: contact" loading="lazy"></figure></div></div>
+        </section>
+        <section class="row">
+          <div class="ask"><h2>Footer</h2><p class="you">You wrote: Can we get the icons here rather than the words. Can we have precision carpentry, premium solutions in bold and two colours wherever we have it</p><p class="did">Done. Instagram and Facebook are icons, and the tagline is bold in two colours in every footer and on the picture that shows when the link is shared.</p></div>
+          <div class="shots"><div class="pair desktop"><figure><figcaption>Before</figcaption><img src="img/baseline-index-1440-footer.jpg" alt="Before: footer" loading="lazy"></figure><figure><figcaption>After</figcaption><img src="img/after-index-1440-footer.jpg" alt="After: footer" loading="lazy"></figure></div><div class="pair phone"><figure><figcaption>Before</figcaption><img src="img/baseline-index-390-footer.jpg" alt="Before: footer" loading="lazy"></figure><figure><figcaption>After</figcaption><img src="img/after-index-390-footer.jpg" alt="After: footer" loading="lazy"></figure></div></div>
+        </section>
+<div class="call"><h2>Three things for our call</h2><ol><li>Connecting your Instagram to the site: about three minutes, we do it together.</li><li>The pergola clip: keep it with the sticker, or hold the spot until a clean file turns up.</li><li>Your Why Radar paragraph: keep it where it now sits, or cut it.</li></ol></div>
+<p class="stamp">Last updated: 9 September 2026. One small reviewer card that showed an odd display name is hidden; the rating still reads 5.0 from ten reviews, which is true.</p>
+</main>
+<script>
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));const w=b.dataset.w;document.querySelectorAll('.pair').forEach(p=>p.classList.toggle('on',p.classList.contains(w)));}));
+document.querySelectorAll('.pair.desktop').forEach(p=>p.classList.add('on'));
+</script></body></html>

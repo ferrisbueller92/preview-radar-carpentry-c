@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
+<script>document.documentElement.classList.add('js');setTimeout(function(){if(!window.__radarReady){document.documentElement.classList.remove('js')}},2500)</script>
+<link rel="preload" as="image" href="assets/video/hero/carousel-1.desktop.jpg" media="(min-width: 769px)">
+<link rel="preload" as="image" href="assets/video/hero/carousel-1.mobile.jpg" media="(max-width: 768px)">
 <title>RADAR Carpentry · Precision carpentry, premium solutions — Melbourne</title>
 <meta name="description" content="RADAR Carpentry — residential &amp; commercial carpentry across Melbourne. Extensions, heritage work, new builds and commercial fit-outs. Precision carpentry, premium solutions.">
 <link rel="icon" type="image/png" href="favicon.png">
@@ -21,6 +24,7 @@
 <meta name="twitter:image" content="https://ferrisbueller92.github.io/preview-radar-carpentry-c/og-cover.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 <link rel="stylesheet" href="tokens.css">
@@ -37,16 +41,16 @@
     <img src="assets/images/radar-wordmark-ondark.png" alt="RADAR Carpentry" class="brand-logo">
   </a>
   <div class="nav-links">
+    <a href="index.html">Home</a>
     <a href="projects.html">Projects</a>
     <a href="#services">Services</a>
-    <a href="#about">About</a>
     <a class="btn btn-ghost" href="contact.html">Get in touch</a>
   </div>
   <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
   <div class="nav-drawer" id="navDrawer">
+    <a href="index.html">Home</a>
     <a href="projects.html">Projects</a>
     <a href="#services">Services</a>
-    <a href="#about">About</a>
     <a class="btn btn-ghost" href="contact.html">Get in touch</a>
   </div>
 </nav>
@@ -55,52 +59,47 @@
 <header class="hero" id="top">
   <div class="swiper hero-swiper" aria-label="Project showcase">
     <div class="swiper-wrapper">
-      <div class="swiper-slide"><img src="assets/images/cladding.jpg" alt="External cladding on a Melbourne home" loading="eager" fetchpriority="high"></div>
-      <div class="swiper-slide"><img src="assets/images/framing-aerial.jpg" alt="Aerial of a timber-framed heritage extension in Toorak" loading="eager" decoding="async"></div>
-      <div class="swiper-slide"><img src="assets/images/optometrist-fitout.jpg" alt="Chapel Street optometrist commercial fit-out" loading="eager" decoding="async"></div>
-      <div class="swiper-slide"><img src="assets/images/structural-detail.jpg" alt="In-situ columns and beams on a heritage extension" loading="eager" decoding="async"></div>
+      <div class="swiper-slide"><video class="hero-video" muted playsinline loop preload="none" poster="assets/video/hero/carousel-1.desktop.jpg" data-desktop="assets/video/hero/carousel-1.desktop" data-mobile="assets/video/hero/carousel-1.mobile" data-poster-desktop="assets/video/hero/carousel-1.desktop.jpg" data-poster-mobile="assets/video/hero/carousel-1.mobile.jpg" aria-label="Drone footage over a rooftop deck and extension by RADAR Carpentry"></video></div>
+      <div class="swiper-slide"><video class="hero-video" muted playsinline loop preload="none" poster="assets/video/hero/carousel-2.desktop.jpg" data-desktop="assets/video/hero/carousel-2.desktop" data-mobile="assets/video/hero/carousel-2.mobile" data-poster-desktop="assets/video/hero/carousel-2.desktop.jpg" data-poster-mobile="assets/video/hero/carousel-2.mobile.jpg" aria-label="Drone footage of a timber-clad house with a skillion roof"></video></div>
+      <div class="swiper-slide"><video class="hero-video" muted playsinline loop preload="none" poster="assets/video/hero/carousel-3.desktop.jpg" data-desktop="assets/video/hero/carousel-3.desktop" data-mobile="assets/video/hero/carousel-3.mobile" data-poster-desktop="assets/video/hero/carousel-3.desktop.jpg" data-poster-mobile="assets/video/hero/carousel-3.mobile.jpg" aria-label="Drone footage of roof framing on a rear extension"></video></div>
+      <div class="swiper-slide"><video class="hero-video" muted playsinline loop preload="none" poster="assets/video/hero/carousel-4.desktop.jpg" data-desktop="assets/video/hero/carousel-4.desktop" data-mobile="assets/video/hero/carousel-4.mobile" data-poster-desktop="assets/video/hero/carousel-4.desktop.jpg" data-poster-mobile="assets/video/hero/carousel-4.mobile.jpg" aria-label="Drone footage of roof framing on a heritage home"></video></div>
+      <div class="swiper-slide"><video class="hero-video" muted playsinline loop preload="none" poster="assets/video/hero/carousel-5.desktop.jpg" data-desktop="assets/video/hero/carousel-5.desktop" data-mobile="assets/video/hero/carousel-5.mobile" data-poster-desktop="assets/video/hero/carousel-5.desktop.jpg" data-poster-mobile="assets/video/hero/carousel-5.mobile.jpg" aria-label="Drone footage of a townhouse build at frame stage"></video></div>
     </div>
   </div>
   <div class="hero-scrim" aria-hidden="true"></div>
   <div class="hero-inner">
     <div class="wrap hero-content">
       <h1 data-reveal data-d="1">Precision carpentry,<br><span class="g">premium solutions.</span></h1>
-      <p class="hero-sub" data-reveal data-d="2">Extensions, heritage work, new builds and commercial fit-outs across Melbourne — Kyle and the team, 18 years on the tools.</p>
+      <p class="hero-sub" data-reveal data-d="2">Specialists in delivering premium residential builds, renovations and extensions across Melbourne.</p>
       <div class="hero-cta" data-reveal data-d="3">
         <a class="btn btn-primary" href="projects.html">View our work →</a>
         <a class="btn btn-line" href="contact.html">Get in touch</a>
       </div>
     </div>
   </div>
-  <div class="hero-pag" aria-hidden="true">
-    <span class="bullet is-active"></span><span class="bullet"></span><span class="bullet"></span><span class="bullet"></span>
+  <div class="hero-ctl">
+    <div class="hero-pag" role="group" aria-label="Choose a clip">
+      <button class="bullet is-active" type="button" aria-label="Clip 1 of 5" aria-current="true"></button><button class="bullet" type="button" aria-label="Clip 2 of 5"></button><button class="bullet" type="button" aria-label="Clip 3 of 5"></button><button class="bullet" type="button" aria-label="Clip 4 of 5"></button><button class="bullet" type="button" aria-label="Clip 5 of 5"></button>
+    </div>
+    <button class="hero-pause" id="heroPause" type="button" aria-pressed="false" aria-label="Pause the clips"><span class="ico" aria-hidden="true"></span></button>
   </div>
-  <div class="scroll-cue" aria-hidden="true">Scroll</div>
 </header>
 
-<!-- INTRO -->
-<section class="sec intro" id="about">
-  <div class="wrap">
-    <span class="ey" data-reveal>Why Radar</span>
-    <p class="intro-statement" data-clip>We're a team of carpenters built on a simple idea: a trade partner should <b>make your job easier, not harder</b>. That means quality work, realistic timelines you can actually plan around, and honest communication when it counts. Builders, developers and architects across Melbourne's inner-east and bayside keep coming back for exactly that.</p>
-  </div>
-</section>
-
 <!-- ABOUT split -->
-<section class="sec split">
+<section class="sec split" id="about">
   <div class="wrap">
     <div class="split-copy" data-reveal>
-      <span class="ey">The trade</span>
+      <span class="ey">Why Radar</span>
       <h2>The carpenters builders call back.</h2>
-      <p>Every member of the team is chosen for their knowledge, their attention to detail and their attitude on site. We're hard-working, pro-active, and focused on getting your project finished on time and on budget.</p>
+      <p>We're a team of carpenters built on a simple idea: a trade partner should <b>make your job easier, not harder</b>. That means quality work, realistic timelines you can actually plan around, and honest communication when it counts. Builders, developers and architects across Melbourne's inner-east and bayside keep coming back for exactly that.</p>
       <ul class="split-list">
-        <li><b>18 years</b><span>on the tools across Melbourne</span></li>
+        <li><b>18 years experience</b><span>across all areas of domestic and commercial carpentry</span></li>
         <li><b>On time, on budget</b><span>planned properly, delivered straight</span></li>
         <li><b>Structural &amp; aesthetic</b><span>integrity you can see in the finish</span></li>
       </ul>
     </div>
     <figure class="split-media" data-reveal data-d="1">
-      <img src="assets/images/steel-roof.jpg" alt="Steel and timber roof framing detail" loading="lazy">
+      <video class="inview-video" muted playsinline loop preload="metadata" poster="assets/video/pergola.jpg" aria-label="Pergola build, from the RADAR Carpentry Instagram"><source src="assets/video/pergola.hevc.mp4" type="video/mp4; codecs=hvc1"><source src="assets/video/pergola.h264.mp4" type="video/mp4"></video>
     </figure>
   </div>
 </section>
@@ -109,19 +108,14 @@
 <section class="sec projects" id="work">
   <div class="wrap">
     <div class="sec-head" data-reveal>
-      <span class="ey">Selected work</span>
-      <h2>Recent projects across Melbourne.</h2>
-      <p>From heritage extensions and new builds to commercial fit-outs — a few of the jobs we've had on the tools.</p>
+      <h2>Projects</h2>
     </div>
-    <div class="work-grid">
-      <a class="wc feature" href="projects.html" data-reveal><video class="tile-video" autoplay muted loop playsinline preload="metadata" poster="assets/images/structural-detail.jpg" aria-label="In-situ columns and beams on a heritage extension in Toorak (video)"><source src="assets/video/tiles/heritage.mp4" type="video/mp4"></video><span class="wash"></span><span class="cap"><b>Heritage Extension</b><i>Toorak · Heritage</i></span></a>
-      <a class="wc" href="projects.html" data-reveal data-d="1"><video class="tile-video" autoplay muted loop playsinline preload="metadata" poster="assets/images/optometrist-fitout.jpg" aria-label="Chapel Street optometrist commercial fit-out (video)"><source src="assets/video/tiles/optometrist.mp4" type="video/mp4"></video><span class="wash"></span><span class="cap"><b>Optometrist Refit</b><i>Chapel St · Commercial</i></span></a>
-      <a class="wc" href="projects.html" data-reveal data-d="2"><video class="tile-video" autoplay muted loop playsinline preload="metadata" poster="assets/images/floor-framing.jpg" aria-label="Aerial of timber floor framing on a new build (video)"><source src="assets/video/tiles/newbuild.mp4" type="video/mp4"></video><span class="wash"></span><span class="cap"><b>New Build</b><i>Frame stage</i></span></a>
-      <a class="wc" href="projects.html" data-reveal><video class="tile-video" autoplay muted loop playsinline preload="metadata" poster="assets/images/cladding.jpg" aria-label="External cladding on a Melbourne home (video)"><source src="assets/video/tiles/cladding.mp4" type="video/mp4"></video><span class="wash"></span><span class="cap"><b>External Cladding</b><i>Residential</i></span></a>
-      <a class="wc" href="projects.html" data-reveal data-d="1"><video class="tile-video" autoplay muted loop playsinline preload="metadata" poster="assets/images/deck-framing.jpg" aria-label="Timber deck framing under construction (video)"><source src="assets/video/tiles/deck.mp4" type="video/mp4"></video><span class="wash"></span><span class="cap"><b>Timber Deck</b><i>Decking</i></span></a>
-      <a class="wc" href="projects.html" data-reveal data-d="2"><img src="assets/images/team-onsite.jpg" alt="The Radar Carpentry team on site" loading="lazy"><span class="wash"></span><span class="cap"><b>The RADAR Team</b><i>On site</i></span></a>
+    <div class="ig-strip" id="igStrip" data-feed="" data-snapshot="assets/data/ig-feed.json" data-fallback="assets/data/projects-fallback.json" data-reveal aria-label="RADAR Carpentry projects">
+      <button class="ig-toggle" id="igToggle" type="button" aria-pressed="false">Pause</button>
+      <div class="ig-viewport"><div class="ig-track" id="igTrack"></div></div>
+      <a class="ig-empty" id="igEmpty" href="https://www.instagram.com/radarcarpentry" target="_blank" rel="noopener" hidden><span class="ig-empty-glyph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/></svg></span><span class="ig-empty-copy"><b>@radarcarpentry</b><span>Job videos and site updates, straight from the tools.</span></span></a>
     </div>
-    <div class="work-more" data-reveal><a class="btn btn-line" href="projects.html">View all projects →</a> <a class="btn btn-ghost" href="https://www.instagram.com/radarcarpentry" target="_blank" rel="noopener">Follow the build on Instagram →</a></div>
+    <div class="work-more" data-reveal><a class="btn btn-primary" href="projects.html">View all projects →</a> <a class="btn btn-ghost" href="https://www.instagram.com/radarcarpentry" target="_blank" rel="noopener">Follow the build on Instagram →</a></div>
   </div>
 </section>
 
@@ -185,11 +179,6 @@
       <div class="rc-viewport"><div class="rc-track">
         <article class="rc-card rev-card">
           <span class="rev-stars" aria-label="5 out of 5 stars">★★★★★</span>
-          <p class="rev-text">Kyle and Billy renovated my shop under budget and on time. Kyle was happy to make changes &#x27;on the fly&#x27; and we finished with a better design than the architect specified. Their carpentry skills are exemplary.</p>
-          <div class="rev-by"><span class="rev-avatar">B</span><span class="rev-meta"><b>Buy Contacts Online</b><i>8 months ago · via Google</i></span></div>
-        </article>
-        <article class="rc-card rev-card">
-          <span class="rev-stars" aria-label="5 out of 5 stars">★★★★★</span>
           <p class="rev-text">Having someone build your house that truly cares and takes the project on like it was his own home is something very special. That’s what we experienced with Kyle from Radar Carpentry. Ours was a decent size build which meant Kyle was part of our lives for over 6 months. In that time we got to know him personally and it was nice to see his smiling face when we visited the site. His skills are excellent and fine tuned and nothing we asked of him was a problem. The attention to detail that Kyle displayed was very impressive and really felt like he had our best interests at heart. We would highly recommend Kyle to anyone who wants a Carpenter that really cares.</p>
           <div class="rev-by"><span class="rev-avatar">S</span><span class="rev-meta"><b>Sacha Kann</b><i>11 months ago · via Google</i></span></div>
         </article>
@@ -222,7 +211,6 @@
     <div class="contact-info" data-reveal>
       <span class="ey">Start a project</span>
       <h2>Let's talk about your build.</h2>
-      <p>Tell us what you've got in mind — you'll talk to the people doing the work, not a call centre.</p>
       <ul class="contact-list">
         <li><span class="lbl">Phone</span><a href="tel:0467210448">0467 210 448</a></li>
         <li><span class="lbl">Email</span><a href="mailto:info@radarcarpentry.com.au">info@radarcarpentry.com.au</a></li>
@@ -230,8 +218,8 @@
       </ul>
     </div>
     <div class="form" data-reveal data-d="1">
-      <h3>Request a quote</h3>
-      <p class="sub">Tell us about the job — we'll get back to you within a day or two.</p>
+      <h3>Get in touch</h3>
+      <p class="sub">Tell us about the job. We'll get back to you within a day or two.</p>
       <form id="quoteForm" novalidate>
         <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" type="text" autocomplete="name" placeholder="Your name" required></div>
         <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" placeholder="you@email.com" required></div>
@@ -249,21 +237,23 @@
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <img src="assets/images/radar-wordmark-ondark.png" alt="RADAR Carpentry" class="foot-logo">
-      <p>Precision carpentry, premium solutions. Residential &amp; commercial carpentry across Melbourne.</p>
+      <p><b class="tagline">Precision carpentry, <span class="g">premium solutions.</span></b><br>Residential &amp; commercial carpentry across Melbourne.</p>
     </div>
     <div class="foot-col">
       <h4>Explore</h4>
+      <a href="index.html">Home</a>
       <a href="projects.html">Projects</a>
       <a href="#services">Services</a>
-      <a href="#about">About</a>
-      <a href="contact.html">Contact</a>
+      <a href="contact.html">Get in touch</a>
     </div>
     <div class="foot-col">
       <h4>Get in touch</h4>
       <a href="tel:0467210448">0467 210 448</a>
       <a href="mailto:info@radarcarpentry.com.au">info@radarcarpentry.com.au</a>
-      <a href="https://www.instagram.com/radarcarpentry" target="_blank" rel="noopener">Instagram</a>
-      <a href="https://www.facebook.com/profile.php?id=100093024024191" target="_blank" rel="noopener">Facebook</a>
+      <div class="foot-social">
+        <a class="soc" href="https://www.instagram.com/radarcarpentry" target="_blank" rel="noopener" aria-label="RADAR Carpentry on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/></svg></a>
+        <a class="soc" href="https://www.facebook.com/profile.php?id=100093024024191" target="_blank" rel="noopener" aria-label="RADAR Carpentry on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/></svg></a>
+      </div>
     </div>
   </div>
   <div class="wrap foot-base">

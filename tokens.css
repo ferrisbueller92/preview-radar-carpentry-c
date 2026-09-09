@@ -16,6 +16,8 @@
   --green:#2E8B5F;
   --green-bright:#42B07C;
   --green-deep:#1F6446;
+  --green-btn:#287A54;        /* primary button fill: white text 5.25:1 (AA) */
+  --green-btn-hover:#2B825A;  /* hover: 4.73:1 */
 
   /* ink on light */
   --ink:#14202B;
