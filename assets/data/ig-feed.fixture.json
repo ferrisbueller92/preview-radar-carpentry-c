@@ -1,0 +1,172 @@
+{
+ "username": "radarcarpentry",
+ "note": "QA FIXTURE ONLY. Real frames from her own footage, labelled as fixtures. Never referenced by production markup; loaded only with ?ig=fixture.",
+ "posts": [
+  {
+   "id": "fixture-1",
+   "timestamp": "2026-09-09T00:00:00+0000",
+   "permalink": "https://www.instagram.com/radarcarpentry/",
+   "mediaType": "IMAGE",
+   "sizes": {
+    "medium": {
+     "mediaUrl": "assets/data/fixture-1.jpg",
+     "width": 700,
+     "height": 700
+    }
+   },
+   "caption": "FIXTURE 1 of 6: frame from her drone clip carousel 1 (rooftop deck and extension)",
+   "prunedCaption": "FIXTURE 1 of 6: frame from her drone clip carousel 1 (rooftop deck and extension)",
+   "altText": "QA fixture image, a frame from RADAR Carpentry footage"
+  },
+  {
+   "id": "fixture-2",
+   "timestamp": "2026-09-09T00:00:00+0000",
+   "permalink": "https://www.instagram.com/radarcarpentry/",
+   "mediaType": "IMAGE",
+   "sizes": {
+    "medium": {
+     "mediaUrl": "assets/data/fixture-2.jpg",
+     "width": 700,
+     "height": 700
+    }
+   },
+   "caption": "FIXTURE 2 of 6: frame from carousel 2 (timber-clad house, skillion roof)",
+   "prunedCaption": "FIXTURE 2 of 6: frame from carousel 2 (timber-clad house, skillion roof)",
+   "altText": "QA fixture image, a frame from RADAR Carpentry footage"
+  },
+  {
+   "id": "fixture-3",
+   "timestamp": "2026-09-09T00:00:00+0000",
+   "permalink": "https://www.instagram.com/radarcarpentry/",
+   "mediaType": "IMAGE",
+   "sizes": {
+    "medium": {
+     "mediaUrl": "assets/data/fixture-3.jpg",
+     "width": 700,
+     "height": 700
+    }
+   },
+   "caption": "FIXTURE 3 of 6: frame from carousel 3 (rear extension roof framing)",
+   "prunedCaption": "FIXTURE 3 of 6: frame from carousel 3 (rear extension roof framing)",
+   "altText": "QA fixture image, a frame from RADAR Carpentry footage"
+  },
+  {
+   "id": "fixture-4",
+   "timestamp": "2026-09-09T00:00:00+0000",
+   "permalink": "https://www.instagram.com/radarcarpentry/",
+   "mediaType": "IMAGE",
+   "sizes": {
+    "medium": {
+     "mediaUrl": "assets/data/fixture-4.jpg",
+     "width": 700,
+     "height": 700
+    }
+   },
+   "caption": "FIXTURE 4 of 6: frame from carousel 4 (heritage home roof framing)",
+   "prunedCaption": "FIXTURE 4 of 6: frame from carousel 4 (heritage home roof framing)",
+   "altText": "QA fixture image, a frame from RADAR Carpentry footage"
+  },
+  {
+   "id": "fixture-5",
+   "timestamp": "2026-09-09T00:00:00+0000",
+   "permalink": "https://www.instagram.com/radarcarpentry/",
+   "mediaType": "IMAGE",
+   "sizes": {
+    "medium": {
+     "mediaUrl": "assets/data/fixture-5.jpg",
+     "width": 700,
+     "height": 700
+    }
+   },
+   "caption": "FIXTURE 5 of 6: frame from carousel 5 (townhouse build)",
+   "prunedCaption": "FIXTURE 5 of 6: frame from carousel 5 (townhouse build)",
+   "altText": "QA fixture image, a frame from RADAR Carpentry footage"
+  },
+  {
+   "id": "fixture-6",
+   "timestamp": "2026-09-09T00:00:00+0000",
+   "permalink": "https://www.instagram.com/radarcarpentry/",
+   "mediaType": "IMAGE",
+   "sizes": {
+    "medium": {
+     "mediaUrl": "assets/data/fixture-6.jpg",
+     "width": 700,
+     "height": 700
+    }
+   },
+   "caption": "FIXTURE 6 of 6: frame from her pergola build reel",
+   "prunedCaption": "FIXTURE 6 of 6: frame from her pergola build reel",
+   "altText": "QA fixture image, a frame from RADAR Carpentry footage"
+  },
+  {
+   "id": "fixture-7",
+   "timestamp": "2026-09-01T00:00:00+0000",
+   "permalink": "https://www.instagram.com/radarcarpentry/",
+   "mediaType": "VIDEO",
+   "isReel": true,
+   "mediaUrl": "assets/video/pergola.h264.mp4",
+   "thumbnailUrl": "assets/video/pergola.jpg",
+   "sizes": {
+    "medium": {
+     "mediaUrl": "assets/video/pergola.jpg",
+     "width": 720,
+     "height": 1280
+    }
+   },
+   "caption": "FIXTURE 7 of 8: a VIDEO post (her pergola clip) so the lightbox's video path can be tested.\n\nSecond paragraph to prove line breaks survive.",
+   "prunedCaption": "FIXTURE 7 of 8: a VIDEO post (her pergola clip) so the lightbox's video path can be tested.",
+   "altText": "QA fixture video, her pergola build clip"
+  },
+  {
+   "id": "fixture-8",
+   "timestamp": "2026-08-20T00:00:00+0000",
+   "permalink": "https://www.instagram.com/radarcarpentry/",
+   "mediaType": "CAROUSEL_ALBUM",
+   "sizes": {
+    "medium": {
+     "mediaUrl": "assets/data/fixture-1.jpg",
+     "width": 700,
+     "height": 700
+    }
+   },
+   "children": [
+    {
+     "id": "fixture-8.1",
+     "mediaType": "IMAGE",
+     "sizes": {
+      "medium": {
+       "mediaUrl": "assets/data/fixture-1.jpg",
+       "width": 700,
+       "height": 700
+      }
+     }
+    },
+    {
+     "id": "fixture-8.2",
+     "mediaType": "IMAGE",
+     "sizes": {
+      "medium": {
+       "mediaUrl": "assets/data/fixture-2.jpg",
+       "width": 700,
+       "height": 700
+      }
+     }
+    },
+    {
+     "id": "fixture-8.3",
+     "mediaType": "IMAGE",
+     "sizes": {
+      "medium": {
+       "mediaUrl": "assets/data/fixture-3.jpg",
+       "width": 700,
+       "height": 700
+      }
+     }
+    }
+   ],
+   "caption": "FIXTURE 8 of 8: a CAROUSEL_ALBUM with three frames so the album path can be tested.",
+   "prunedCaption": "FIXTURE 8 of 8: a CAROUSEL_ALBUM with three frames so the album path can be tested.",
+   "altText": "QA fixture album, three frames from RADAR Carpentry footage"
+  }
+ ]
+}

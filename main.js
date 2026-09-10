@@ -34,6 +34,7 @@
       requestAnimationFrame(raf);
     }
   }
+  window.__radarLenis = lenis; /* Round 3: the lightbox stops/starts smooth scroll while open */
 
   /* ---------- hero carousel: Beth's drone clips (Round 2) ----------
      Each slide is a muted looping video. Sources are chosen per viewport (desktop = 16:9 band,
@@ -210,58 +211,144 @@
   vids.forEach(function(v){ io.observe(v); });
 })();
 
-/* Projects strip (Round 2): Instagram posts from the Behold JSON feed when a feed URL is set, the snapshot JSON as the
-   fallback, her own project stills when neither has posts, and a designed empty state only if all of that fails.
-   The duplicate set that makes the loop seamless is hidden from assistive tech. The strip pauses off screen, on hover,
-   on focus, and on its own Pause button. ?ig=fixture loads the QA fixture (never in production markup). */
+/* Instagram (Round 3b, 10 Sep 2026): the old site's Instagram section, in Beth's skin. A STATIC row of square posts,
+   no motion; a chevron pages the row (swipe on the phone); a tile shows only the picture, with a play glyph for video
+   and an album glyph for albums; hover or focus shows the caption over the tile; click opens the post on-site in a
+   lightbox (media, the handle, the caption and hashtags, the date). The projects page shows the same posts as a grid.
+   Posts come from the local snapshot the nightly job writes, then a Behold feed URL if set, then her project stills,
+   then a designed empty state. Without JS every tile is a plain link to the post on Instagram. ?ig=fixture loads the
+   QA fixture (never in production markup). */
 ;(function(){
-  var strip=document.getElementById('igStrip'); if(!strip) return;
-  var track=document.getElementById('igTrack'), empty=document.getElementById('igEmpty'), toggle=document.getElementById('igToggle');
   var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var feed=strip.getAttribute('data-feed')||'';
-  var snap=/[?&]ig=fixture(&|$)/.test(location.search)?'assets/data/ig-feed.fixture.json':strip.getAttribute('data-snapshot');
-  var fallback=strip.getAttribute('data-fallback')||'';
-  var GLYPH=empty?empty.querySelector('svg').outerHTML:'';
+  var fixture=/[?&]ig=fixture(&|$)/.test(location.search);
+  var HOME='https://www.instagram.com/radarcarpentry';
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-  function pick(p){ var s=p.sizes||{}; return (s.medium||s.large||s.full||s.small||{}).mediaUrl||p.thumbnailUrl||p.mediaUrl||''; }
-  function igCard(p){
-    var cap=(p.prunedCaption||p.caption||'').replace(/\s+/g,' ').trim();
-    if(cap.length>72) cap=cap.slice(0,69).replace(/\s+\S*$/,'')+'\u2026';
-    return '<a class="ig-card" href="'+esc(p.permalink)+'" target="_blank" rel="noopener"><img src="'+esc(pick(p))+'" alt="'+esc(p.altText||'Instagram post from RADAR Carpentry')+'" loading="lazy" width="700" height="700"><span class="ig-meta">'+GLYPH+'<span class="ig-cap">'+esc(cap)+'</span></span></a>';
-  }
-  function stillCard(p){
-    return '<a class="ig-card is-still" href="'+esc(p.permalink)+'"><img src="'+esc(p.image)+'" alt="'+esc(p.alt||p.title)+'" loading="lazy" width="700" height="700"><span class="ig-meta"><span class="ig-cap"><b>'+esc(p.title)+'</b><i>'+esc(p.meta||'')+'</i></span></span></a>';
-  }
-  function mount(html,count){
-    track.innerHTML=reduce?'<div class="ig-set">'+html+'</div>':'<div class="ig-set">'+html+'</div><div class="ig-set" aria-hidden="true">'+html.replace(/<a /g,'<a tabindex="-1" ')+'</div>';
-    strip.style.setProperty('--ig-dur',Math.max(30,count*8)+'s');
-    strip.classList.add('is-live');
-  }
-  function showEmpty(){ strip.classList.add('is-empty'); if(empty) empty.hidden=false; if(toggle) toggle.hidden=true; }
-  function renderPosts(data){
-    var posts=((data&&data.posts)||[]).filter(function(p){ return p&&p.permalink&&pick(p); });
-    if(!posts.length) return false;
-    mount(posts.map(igCard).join(''),posts.length); strip.classList.add('is-instagram'); return true;
-  }
-  function renderStills(data){
-    var items=((data&&data.items)||[]).filter(function(p){ return p&&p.image&&p.permalink; });
-    if(!items.length) return false;
-    mount(items.map(stillCard).join(''),items.length); return true;
-  }
+  function size(p,k){ var s=p.sizes||{}; return (s[k]||{}).mediaUrl||''; }
+  function thumb(p){ return size(p,'medium')||size(p,'large')||size(p,'full')||size(p,'small')||p.thumbnailUrl||(p.mediaType==='VIDEO'?'':p.mediaUrl)||''; }
+  function big(p){ return size(p,'large')||size(p,'full')||size(p,'medium')||p.thumbnailUrl||(p.mediaType==='VIDEO'?'':p.mediaUrl)||''; }
   function load(url){ return fetch(url,{cache:'no-store'}).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }); }
-  (feed?load(feed).catch(function(){ return load(snap); }):load(snap))
-    .then(function(d){ if(!renderPosts(d)) throw new Error('no posts'); return true; })
-    .catch(function(){ return fallback?load(fallback).then(renderStills):false; })
-    .then(function(ok){ if(!ok) showEmpty(); })
-    .catch(showEmpty);
-  if('IntersectionObserver' in window){
-    new IntersectionObserver(function(es){ es.forEach(function(e){ strip.classList.toggle('is-inview',e.isIntersecting); }); },{threshold:.05}).observe(strip);
-  } else { strip.classList.add('is-inview'); }
-  if(toggle){
-    if(reduce) toggle.hidden=true;
-    toggle.addEventListener('click',function(){
-      var p=!strip.classList.contains('is-paused');
-      strip.classList.toggle('is-paused',p); toggle.setAttribute('aria-pressed',String(p)); toggle.textContent=p?'Play':'Pause';
+  function usable(data){ return ((data&&data.posts)||[]).filter(function(p){ return p&&p.permalink&&thumb(p); }); }
+  var PLAY='<span class="ig-kind ig-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>';
+  var ALBUM='<span class="ig-kind ig-album" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6H2v14a2 2 0 0 0 2 2h14v-2H4zm16-4H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg></span>';
+  function card(p,i){
+    var cap=(p.caption||p.prunedCaption||'').trim();
+    var kind=p.mediaType==='VIDEO'?PLAY:(p.mediaType==='CAROUSEL_ALBUM'?ALBUM:'');
+    var label=(p.mediaType==='VIDEO'?'Video: ':'')+(cap.replace(/\s+/g,' ').slice(0,90)||'Instagram post from RADAR Carpentry');
+    return '<a class="ig-card" href="'+esc(p.permalink)+'" target="_blank" rel="noopener" data-i="'+i+'" aria-label="'+esc(label)+'"><img src="'+esc(thumb(p))+'" alt="'+esc(p.altText||'Instagram post from RADAR Carpentry')+'" loading="lazy" width="700" height="700">'+kind+'<span class="ig-hover" aria-hidden="true"><span>'+esc(cap)+'</span></span></a>';
+  }
+
+  /* ---------- lightbox (one per page) ---------- */
+  var box=null;
+  (function(){
+    var dlg=document.getElementById('igDialog'); if(!dlg||typeof dlg.showModal!=='function') return;
+    var media=document.getElementById('igdMedia'), cap=document.getElementById('igdCap'), date=document.getElementById('igdDate'), link=document.getElementById('igdLink');
+    var prev=dlg.querySelector('.igd-prev'), next=dlg.querySelector('.igd-next'), close=dlg.querySelector('.igd-close');
+    var list=[], idx=0, opener=null;
+    function one(p,alt){
+      if(p.mediaType==='VIDEO'&&p.mediaUrl){
+        return '<video src="'+esc(p.mediaUrl)+'"'+(big(p)?' poster="'+esc(big(p))+'"':'')+' controls'+(reduce?'':' autoplay')+' muted playsinline loop preload="metadata" aria-label="'+esc(alt)+'"></video>';
+      }
+      return '<img src="'+esc(big(p))+'" alt="'+esc(alt)+'">';
+    }
+    function when(ts){ if(!ts) return ''; var d=new Date(ts); if(isNaN(d.getTime())) return ''; return d.toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'}); }
+    function render(){
+      var p=list[idx]; if(!p) return;
+      var alt=p.altText||'Instagram post from RADAR Carpentry';
+      var kids=(p.mediaType==='CAROUSEL_ALBUM'&&p.children&&p.children.length)?p.children:null;
+      if(kids){
+        media.innerHTML='<div class="igd-album" tabindex="0" aria-label="'+kids.length+' items, scroll sideways">'+kids.map(function(c){ return '<div class="igd-item">'+one(c,alt)+'</div>'; }).join('')+'</div><span class="igd-count" aria-live="polite">1 / '+kids.length+'</span>';
+        var al=media.querySelector('.igd-album'), ct=media.querySelector('.igd-count');
+        al.addEventListener('scroll',function(){ var n=Math.round(al.scrollLeft/Math.max(1,al.clientWidth))+1; ct.textContent=Math.min(kids.length,Math.max(1,n))+' / '+kids.length; },{passive:true});
+      } else { media.innerHTML='<div class="igd-item">'+one(p,alt)+'</div>'; }
+      var text=(p.caption||p.prunedCaption||'').trim();
+      cap.textContent=text; cap.hidden=!text;
+      var d=when(p.timestamp); date.textContent=d; date.hidden=!d; if(p.timestamp) date.setAttribute('datetime',p.timestamp);
+      link.href=p.permalink||HOME;
+      prev.disabled=idx<=0; next.disabled=idx>=list.length-1;
+      dlg.setAttribute('aria-label','Instagram post '+(idx+1)+' of '+list.length);
+    }
+    function stopMedia(){ Array.prototype.forEach.call(media.querySelectorAll('video'),function(v){ try{ v.pause(); }catch(e){} }); media.innerHTML=''; }
+    function step(d){ var n=idx+d; if(n<0||n>=list.length) return; idx=n; stopMedia(); render(); }
+    prev.addEventListener('click',function(){ step(-1); });
+    next.addEventListener('click',function(){ step(1); });
+    close.addEventListener('click',function(){ dlg.close(); });
+    dlg.addEventListener('click',function(e){ if(e.target===dlg) dlg.close(); });
+    dlg.addEventListener('keydown',function(e){ if(e.key==='ArrowLeft'){ step(-1); } else if(e.key==='ArrowRight'){ step(1); } });
+    dlg.addEventListener('close',function(){
+      stopMedia(); document.body.classList.remove('igd-open');
+      if(window.__radarLenis&&window.__radarLenis.start) window.__radarLenis.start();
+      if(opener&&opener.focus) opener.focus(); opener=null;
+    });
+    box={open:function(posts,i,from){
+      list=posts||[]; if(!list.length) return; idx=Math.max(0,Math.min(i||0,list.length-1)); opener=from||document.activeElement;
+      render(); document.body.classList.add('igd-open');
+      if(window.__radarLenis&&window.__radarLenis.stop) window.__radarLenis.stop();
+      dlg.showModal(); close.focus();
+    }};
+  })();
+  function wire(root,getPosts){
+    root.addEventListener('click',function(e){
+      var a=e.target.closest?e.target.closest('a.ig-card[data-i]'):null; if(!a||!box) return;
+      e.preventDefault(); box.open(getPosts(),parseInt(a.getAttribute('data-i'),10)||0,a);
     });
   }
+
+  /* ---------- the row on the home page ---------- */
+  (function(){
+    var row=document.getElementById('igStrip'); if(!row) return;
+    var track=document.getElementById('igTrack'), empty=document.getElementById('igEmpty');
+    var prev=row.querySelector('.ig-prev'), next=row.querySelector('.ig-next');
+    var feed=fixture?'':(row.getAttribute('data-feed')||'');
+    var snap=fixture?'assets/data/ig-feed.fixture.json':row.getAttribute('data-snapshot');
+    var fallback=row.getAttribute('data-fallback')||'';
+    var posts=[];
+    function stillCard(p){
+      return '<a class="ig-card is-still" href="'+esc(p.permalink)+'"><img src="'+esc(p.image)+'" alt="'+esc(p.alt||p.title)+'" loading="lazy" width="700" height="700"><span class="ig-meta"><span class="ig-cap"><b>'+esc(p.title)+'</b><i>'+esc(p.meta||'')+'</i></span></span></a>';
+    }
+    function arrows(){
+      if(!prev||!next) return;
+      var over=track.scrollWidth>track.clientWidth+4;
+      prev.hidden=!over; next.hidden=!over;
+      prev.disabled=track.scrollLeft<=2; next.disabled=track.scrollLeft+track.clientWidth>=track.scrollWidth-2;
+    }
+    function mount(html){ track.innerHTML=html; row.classList.add('is-live'); arrows(); setTimeout(arrows,300); }
+    function showEmpty(){ row.classList.add('is-empty'); if(empty) empty.hidden=false; if(prev) prev.hidden=true; if(next) next.hidden=true; }
+    function renderPosts(data){
+      var ok=usable(data); if(!ok.length) return false;
+      posts=ok; mount(ok.map(card).join('')); row.classList.add('is-instagram'); return true;
+    }
+    function renderStills(data){
+      var items=((data&&data.items)||[]).filter(function(p){ return p&&p.image&&p.permalink; });
+      if(!items.length) return false;
+      mount(items.map(stillCard).join('')); return true;
+    }
+    load(snap).then(function(d){ if(usable(d).length||!feed) return d; return load(feed).catch(function(){ return d; }); })
+      .catch(function(){ return feed?load(feed):null; })
+      .then(function(d){ if(!renderPosts(d)) throw new Error('no posts'); return true; })
+      .catch(function(){ return fallback?load(fallback).then(renderStills):false; })
+      .then(function(ok){ if(!ok) showEmpty(); })
+      .catch(showEmpty);
+    function page(dir){ track.scrollBy({left:dir*Math.max(160,track.clientWidth*0.9),behavior:reduce?'auto':'smooth'}); }
+    if(prev) prev.addEventListener('click',function(){ page(-1); });
+    if(next) next.addEventListener('click',function(){ page(1); });
+    track.addEventListener('scroll',arrows,{passive:true});
+    window.addEventListener('resize',arrows);
+    track.addEventListener('keydown',function(e){ if(e.target!==track) return; if(e.key==='ArrowRight'){ e.preventDefault(); page(1); } else if(e.key==='ArrowLeft'){ e.preventDefault(); page(-1); } });
+    wire(track,function(){ return posts; });
+  })();
+
+  /* ---------- the grid on the projects page ---------- */
+  (function(){
+    var grid=document.getElementById('igGrid'); if(!grid) return;
+    var sec=grid.closest('section'), also=Array.prototype.slice.call(document.querySelectorAll('[data-with-grid]'));
+    var snap=fixture?'assets/data/ig-feed.fixture.json':grid.getAttribute('data-snapshot');
+    var posts=[];
+    load(snap).then(function(d){
+      var ok=usable(d); if(!ok.length) return;
+      posts=ok; grid.innerHTML=ok.map(card).join('');
+      if(sec) sec.hidden=false; also.forEach(function(el){ el.hidden=false; });
+      if(window.ScrollTrigger&&window.ScrollTrigger.refresh) window.ScrollTrigger.refresh();
+    }).catch(function(){});
+    wire(grid,function(){ return posts; });
+  })();
 })();
