@@ -182,13 +182,16 @@
       openMail(); say('Opening your email app — just hit send and we’ll be in touch.'); return;
     }
     var failed = function () { say('That didn’t go through, so your email app is opening with your message. Or call Kyle on 0467 210 448.'); openMail(); };
+    // The old Wix site reported every enquiry to their Google Ads account as a lead ("Lead Event"). The live build sets
+    // RADAR_ADS_LEAD beside the Google tag so this form keeps doing the same; nothing is sent where the tag is absent.
+    var lead = function () { if (window.RADAR_ADS_LEAD && typeof window.gtag === 'function') window.gtag('event', 'conversion', { send_to: window.RADAR_ADS_LEAD }); };
     if (btn) btn.disabled = true;
     say('Sending…');
     fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
       name: g('name'), email: g('email'), phone: g('phone'), message: g('message'), subject: subject,
       botcheck: form.elements.botcheck && form.elements.botcheck.checked ? 'on' : '' }) })
       .then(function (r) { return r.json().catch(function () { return {}; }); })
-      .then(function (d) { if (d && d.success) { form.reset(); say('Thanks — your message is on its way. We’ll be in touch within a day or two.'); } else { failed(); } })
+      .then(function (d) { if (d && d.success) { form.reset(); say('Thanks — your message is on its way. We’ll be in touch within a day or two.'); lead(); } else { failed(); } })
       .catch(failed)
       .then(function () { if (btn) btn.disabled = false; });
   });

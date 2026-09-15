@@ -386,3 +386,6 @@ body.igd-open{overflow:hidden}
   .igd-nav{width:40px;height:40px}
 }
 @media (prefers-reduced-motion:reduce){.ig-hover{transition:none}.ig-dialog::backdrop{backdrop-filter:none;-webkit-backdrop-filter:none}}
+/* skip link (the old Wix site had one): above the page until a keyboard user tabs to it */
+.skip-link{position:fixed;left:16px;top:-80px;z-index:100;background:#fff;color:var(--ink);font-family:var(--f-body);font-weight:600;font-size:.95rem;padding:.7em 1.1em;border-radius:var(--r);box-shadow:0 6px 24px rgba(0,0,0,.25);transition:top .15s}
+.skip-link:focus,.skip-link:focus-visible{top:16px;outline:2px solid var(--green-bright);outline-offset:2px}
