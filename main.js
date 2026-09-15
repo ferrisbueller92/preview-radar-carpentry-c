@@ -161,16 +161,36 @@
     }, 1000);
   }
 
-  /* ---------- contact form (mailto) ---------- */
+  /* ---------- contact form ----------
+     Live site: posts to /api/submit (the Just Sorted form handler emails info@radarcarpentry.com.au, reply-to the visitor).
+     Anywhere without that handler (the preview link, a local copy), or if the post fails, the visitor's email app opens
+     with the message filled in, as before. */
   var form = document.getElementById('quoteForm');
   if (form) form.addEventListener('submit', function (e) {
     e.preventDefault();
     var g = function (n) { return (form.elements[n] && form.elements[n].value || '').trim(); };
-    var subject = 'Quote request — ' + (g('name') || 'website enquiry');
-    var body = 'Name: ' + g('name') + '\nEmail: ' + g('email') + '\nPhone: ' + g('phone') + '\n\n' + g('message');
-    window.location.href = 'mailto:info@radarcarpentry.com.au?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
     var note = document.getElementById('formNote');
-    if (note) note.textContent = 'Opening your email app — just hit send and we’ll be in touch.';
+    var btn = form.querySelector('button[type="submit"]');
+    var say = function (t) { if (note) note.textContent = t; };
+    if (!g('name') || !/.+@.+\..+/.test(g('email')) || !g('message')) { say('Please add your name, a working email and a few words about the job.'); return; }
+    var subject = 'Website enquiry — ' + g('name');
+    var openMail = function () {
+      var body = 'Name: ' + g('name') + '\nEmail: ' + g('email') + '\nPhone: ' + g('phone') + '\n\n' + g('message');
+      window.location.href = 'mailto:info@radarcarpentry.com.au?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    };
+    if (!/(^|\.)radarcarpentry\.com\.au$|\.vercel\.app$/.test(location.hostname)) {
+      openMail(); say('Opening your email app — just hit send and we’ll be in touch.'); return;
+    }
+    var failed = function () { say('That didn’t go through, so your email app is opening with your message. Or call Kyle on 0467 210 448.'); openMail(); };
+    if (btn) btn.disabled = true;
+    say('Sending…');
+    fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+      name: g('name'), email: g('email'), phone: g('phone'), message: g('message'), subject: subject,
+      botcheck: form.elements.botcheck && form.elements.botcheck.checked ? 'on' : '' }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (d) { if (d && d.success) { form.reset(); say('Thanks — your message is on its way. We’ll be in touch within a day or two.'); } else { failed(); } })
+      .catch(failed)
+      .then(function () { if (btn) btn.disabled = false; });
   });
 })();
 
