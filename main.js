@@ -195,6 +195,39 @@
       .catch(failed)
       .then(function () { if (btn) btn.disabled = false; });
   });
+
+  /* ---------- careers form ----------
+     The old Wix careers page had an application form that delivered. Same handler as enquiries (it builds the email from
+     every field sent; first-name + last-name become the reply-to name); the subject marks it as an application. Never
+     reported to Google Ads as a lead. Off the live site, or if the post fails, the visitor's email app opens instead. */
+  var cform = document.getElementById('careersForm');
+  if (cform) cform.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var g = function (n) { return (cform.elements[n] && cform.elements[n].value || '').trim(); };
+    var note = document.getElementById('careersNote');
+    var btn = cform.querySelector('button[type="submit"]');
+    var say = function (t) { if (note) note.textContent = t; };
+    if (!g('first-name') || !/.+@.+\..+/.test(g('email'))) { say('Please add your first name and a working email.'); return; }
+    var who = (g('first-name') + ' ' + g('last-name')).trim();
+    var subject = 'Careers application — ' + who;
+    var openMail = function () {
+      var body = 'Name: ' + who + '\nEmail: ' + g('email') + '\nPhone: ' + g('phone') + '\nPosition: ' + g('position') + '\n\n' + g('message');
+      window.location.href = 'mailto:info@radarcarpentry.com.au?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    };
+    if (!/(^|\.)radarcarpentry\.com\.au$|\.vercel\.app$/.test(location.hostname)) {
+      openMail(); say('Opening your email app — just hit send and we’ll be in touch.'); return;
+    }
+    var failed = function () { say('That didn’t go through, so your email app is opening with your details. Or call Kyle on 0467 210 448.'); openMail(); };
+    if (btn) btn.disabled = true;
+    say('Sending…');
+    fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+      'first-name': g('first-name'), 'last-name': g('last-name'), email: g('email'), phone: g('phone'), position: g('position'),
+      message: g('message'), subject: subject, botcheck: cform.elements.botcheck && cform.elements.botcheck.checked ? 'on' : '' }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (d) { if (d && d.success) { cform.reset(); say('Thanks — your application is on its way. We’ll be in touch.'); } else { failed(); } })
+      .catch(failed)
+      .then(function () { if (btn) btn.disabled = false; });
+  });
 })();
 
 /* RADAR reviews carousel */
@@ -238,7 +271,8 @@
    no motion; a chevron pages the row (swipe on the phone); a tile shows only the picture, with a play glyph for video
    and an album glyph for albums; hover or focus shows the caption over the tile; click opens the post on-site in a
    lightbox (media, the handle, the caption and hashtags, the date). The projects page shows the same posts as a grid.
-   Posts come from the local snapshot the nightly job writes, then a Behold feed URL if set, then her project stills,
+   Posts come from the live feed when the page names one (production: /api/instagram, 15 Sep 2026), else the local
+   snapshot the nightly job writes (also the fallback when the feed is slow or down), then her project stills,
    then a designed empty state. Without JS every tile is a plain link to the post on Instagram. ?ig=fixture loads the
    QA fixture (never in production markup). */
 ;(function(){
@@ -251,6 +285,11 @@
   function big(p){ return size(p,'large')||size(p,'full')||size(p,'medium')||p.thumbnailUrl||(p.mediaType==='VIDEO'?'':p.mediaUrl)||''; }
   function load(url){ return fetch(url,{cache:'no-store'}).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }); }
   function usable(data){ return ((data&&data.posts)||[]).filter(function(p){ return p&&p.permalink&&thumb(p); }); }
+  // Production pages name a live feed (/api/instagram: her newest posts, fetched the way her old Wix site does). It is tried
+  // first; if it is slow (4 s), down or empty, the saved snapshot is used instead, so the section never goes blank.
+  function live(url){ return new Promise(function(ok,no){ var t=setTimeout(function(){ no(new Error('slow')); },4000);
+    fetch(url).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(d){ clearTimeout(t); if(usable(d).length) ok(d); else no(new Error('empty')); },function(e){ clearTimeout(t); no(e); }); }); }
   var PLAY='<span class="ig-kind ig-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>';
   var ALBUM='<span class="ig-kind ig-album" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6H2v14a2 2 0 0 0 2 2h14v-2H4zm16-4H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg></span>';
   function card(p,i){
@@ -345,8 +384,8 @@
       if(!items.length) return false;
       mount(items.map(stillCard).join('')); return true;
     }
-    load(snap).then(function(d){ if(usable(d).length||!feed) return d; return load(feed).catch(function(){ return d; }); })
-      .catch(function(){ return feed?load(feed):null; })
+    (feed?live(feed).catch(function(){ return load(snap); }):load(snap))
+      .catch(function(){ return null; })
       .then(function(d){ if(!renderPosts(d)) throw new Error('no posts'); return true; })
       .catch(function(){ return fallback?load(fallback).then(renderStills):false; })
       .then(function(ok){ if(!ok) showEmpty(); })
@@ -364,9 +403,10 @@
   (function(){
     var grid=document.getElementById('igGrid'); if(!grid) return;
     var sec=grid.closest('section'), also=Array.prototype.slice.call(document.querySelectorAll('[data-with-grid]'));
+    var feed=fixture?'':(grid.getAttribute('data-feed')||'');
     var snap=fixture?'assets/data/ig-feed.fixture.json':grid.getAttribute('data-snapshot');
     var posts=[];
-    load(snap).then(function(d){
+    (feed?live(feed).catch(function(){ return load(snap); }):load(snap)).then(function(d){
       var ok=usable(d); if(!ok.length) return;
       posts=ok; grid.innerHTML=ok.map(card).join('');
       if(sec) sec.hidden=false; also.forEach(function(el){ el.hidden=false; });

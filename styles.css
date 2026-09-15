@@ -181,6 +181,12 @@ p{color:var(--on-dark-soft)}
 
 /* careers */
 .careers{background:var(--navy-900);border-top:1px solid var(--navy-line)}
+.careers-form{max-width:760px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.form-alt{margin-top:.5rem;font-size:.9rem;color:var(--on-dark-mute)}
+.form-alt a{color:var(--on-dark);text-decoration:underline;text-underline-offset:3px}
+.form-alt a:hover{color:var(--green-bright)}
+@media (max-width:640px){.form-grid{grid-template-columns:1fr}}
 
 /* interior page header */
 .page-top{padding:clamp(130px,18vh,200px) 0 clamp(44px,6vw,76px);background:var(--navy-900);border-bottom:1px solid var(--navy-line)}

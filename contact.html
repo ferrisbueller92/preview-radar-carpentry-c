@@ -97,7 +97,22 @@
       <h2 data-reveal data-d="1">Passionate about the craft?</h2>
       <p data-reveal data-d="2">We're always on the lookout for good carpenters around Melbourne. If you take pride in doing it properly, we'd love to hear from you.</p>
     </div>
-    <a class="btn btn-primary big" href="mailto:info@radarcarpentry.com.au?subject=Careers%20enquiry%20%E2%80%94%20RADAR%20Carpentry" data-reveal data-d="3">Email us your details →</a>
+    <div class="form careers-form" data-reveal data-d="3">
+      <form id="careersForm" novalidate>
+        <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+        <div class="form-grid">
+          <div class="field"><label for="c-first">First name</label><input id="c-first" name="first-name" type="text" autocomplete="given-name" required></div>
+          <div class="field"><label for="c-last">Last name</label><input id="c-last" name="last-name" type="text" autocomplete="family-name"></div>
+          <div class="field"><label for="c-email">Email</label><input id="c-email" name="email" type="email" autocomplete="email" placeholder="you@email.com" required></div>
+          <div class="field"><label for="c-phone">Phone</label><input id="c-phone" name="phone" type="tel" autocomplete="tel" placeholder="Mobile"></div>
+        </div>
+        <div class="field"><label for="c-position">Position</label><input id="c-position" name="position" type="text" placeholder="The role you're after"></div>
+        <div class="field"><label for="c-message">Message</label><textarea id="c-message" name="message" placeholder="A bit about your experience."></textarea></div>
+        <button class="btn btn-primary" type="submit">Send application →</button>
+        <p class="form-note" id="careersNote" role="status" aria-live="polite"></p>
+        <p class="form-alt">Or email your CV to <a href="mailto:info@radarcarpentry.com.au?subject=Careers%20enquiry%20%E2%80%94%20RADAR%20Carpentry">info@radarcarpentry.com.au</a></p>
+      </form>
+    </div>
   </div>
 </section>
 
