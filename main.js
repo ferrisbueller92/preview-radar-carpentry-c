@@ -374,33 +374,47 @@
      play glyph stays and the lightbox still plays the post). At most 8 tiles play at once; all pause while the lightbox
      is open. */
   var conn=navigator.connection||{};
-  var autoplayOK=!reduce&&('IntersectionObserver' in window)&&!conn.saveData&&!/2g/.test(conn.effectiveType||'');
-  var MAX_PLAYING=8, playing=[], inview=[], tilesHeld=false, loading=null;
+  var autoplayOK=!reduce&&('IntersectionObserver' in window)&&!conn.saveData&&!/2g/.test(conn.effectiveType||'')&&typeof fetch==='function'&&typeof URL!=='undefined'&&!!URL.createObjectURL;
+  var MAX_PLAYING=8, FETCHES=3, playing=[], inview=[], fetching=[], tilesHeld=false;
+  function sameOrigin(u){ return !/^https?:\/\//i.test(u)||u.indexOf(location.origin+'/')===0; }
   function tileVideo(a){
     var v=a.querySelector('video'); if(v) return v;
     v=document.createElement('video'); v.muted=true; v.defaultMuted=true; v.loop=true; v.playsInline=true;
-    v.setAttribute('muted',''); v.setAttribute('playsinline',''); v.setAttribute('loop',''); v.setAttribute('aria-hidden','true'); v.tabIndex=-1;
-    v.preload='none'; v.src=a.getAttribute('data-video');  /* no poster: the tile's own picture shows until frames play (styles: video fades in with .is-playing) */
-    a.insertBefore(v,a.querySelector('.ig-kind')||a.querySelector('.ig-hover')); return v;
+    v.setAttribute('muted',''); v.setAttribute('playsinline',''); v.setAttribute('loop',''); v.setAttribute('aria-hidden','true'); v.tabIndex=-1; v.preload='none';
+    a.insertBefore(v,a.querySelector('.ig-kind')||a.querySelector('.ig-hover')); return v;  /* no poster: the tile's own picture shows until frames play (styles: video fades in with .is-playing) */
   }
   function stopTile(a){
     a.classList.remove('is-playing'); var v=a.querySelector('video'); if(v){ try{ v.pause(); }catch(e){} }
-    var i=playing.indexOf(a); if(i>-1) playing.splice(i,1); if(loading===a) loading=null;
+    var i=playing.indexOf(a); if(i>-1) playing.splice(i,1);
   }
-  // Tiles start ONE AT A TIME: Safari's engine loads only a few media files at once and leaves the rest waiting for ever
-  // when eight are started together (seen on the live grid, 17 Sep 2026). The next tile begins when the previous one is
-  // playing, or after 4 s so a slow file never blocks the rest; a tile leaving the view frees a slot for the next waiting one.
-  function pump(){
-    if(tilesHeld||loading||playing.length>=MAX_PLAYING) return;
-    var a=null; for(var i=0;i<inview.length;i++){ if(playing.indexOf(inview[i])<0&&!inview[i].hasAttribute('data-noplay')){ a=inview[i]; break; } }
-    if(!a) return;
-    loading=a; playing.push(a);
-    var v=tileVideo(a), done=false, timer=null;
-    function next(){ if(done) return; done=true; clearTimeout(timer); if(loading===a) loading=null; pump(); }
+  function startTile(a){
+    if(tilesHeld||playing.indexOf(a)>-1||playing.length>=MAX_PLAYING) return;
+    var v=tileVideo(a); if(!v.getAttribute('src')) v.src=a.getAttribute('data-blob');
+    playing.push(a);
     var p=v.play();
-    if(p&&p.then) p.then(function(){ if(playing.indexOf(a)>-1&&!v.paused) a.classList.add('is-playing'); next(); },function(){ a.setAttribute('data-noplay',''); stopTile(a); next(); });
-    else { a.classList.add('is-playing'); next(); }
-    timer=setTimeout(next,4000);
+    if(p&&p.then) p.then(function(){ if(playing.indexOf(a)>-1&&!v.paused) a.classList.add('is-playing'); },function(){ a.setAttribute('data-noplay',''); stopTile(a); });
+    else a.classList.add('is-playing');
+  }
+  // The preview file is fetched like any other file (three at a time, 20 s limit each) and handed to the video as a local
+  // blob, so playback never waits on the browser's media loader: Safari's engine left tiles stuck for ever when several
+  // <video> elements loaded straight from the network (live grid, 17 Sep 2026). A remote video (a brand-new post with no
+  // preview yet) plays straight from its address instead. A file that fails to arrive is left alone until the page reloads.
+  function fetchTile(a){
+    var url=a.getAttribute('data-video');
+    if(!sameOrigin(url)){ a.setAttribute('data-blob',url); return Promise.resolve(); }
+    var ctl=('AbortController' in window)?new AbortController():null, timer=ctl?setTimeout(function(){ ctl.abort(); },20000):null;
+    return fetch(url,ctl?{signal:ctl.signal}:{}).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.blob(); })
+      .then(function(b){ if(timer) clearTimeout(timer); a.setAttribute('data-blob',URL.createObjectURL(b)); },
+            function(){ if(timer) clearTimeout(timer); a.setAttribute('data-noplay',''); });
+  }
+  function pump(){
+    if(tilesHeld) return;
+    inview.forEach(function(a){ if(a.hasAttribute('data-blob')&&!a.hasAttribute('data-noplay')) startTile(a); });
+    while(fetching.length<FETCHES&&playing.length+fetching.length<MAX_PLAYING){
+      var a=null; for(var i=0;i<inview.length;i++){ var c=inview[i]; if(!c.hasAttribute('data-blob')&&!c.hasAttribute('data-noplay')&&fetching.indexOf(c)<0){ a=c; break; } }
+      if(!a) return;
+      (function(t){ fetching.push(t); fetchTile(t).then(function(){ fetching.splice(fetching.indexOf(t),1); pump(); }); })(a);
+    }
   }
   var tio=autoplayOK?new IntersectionObserver(function(es){
     es.forEach(function(e){ var a=e.target, i=inview.indexOf(a);
