@@ -59,6 +59,9 @@ h3{font-size:.8rem;font-family:var(--f-mono);text-transform:uppercase;letter-spa
 .cross{stroke:rgba(244,246,248,.45);stroke-width:1}
 .dot{fill:var(--mark);stroke:var(--card);stroke-width:2}
 .endlbl{fill:var(--on-dark);font:600 13px var(--f-body)}
+.col{fill:var(--mark)}
+.col-hit{fill:transparent}
+.col-lbl{fill:var(--on-dark);font:600 12px var(--f-body)}
 /* bars */
 .bars{display:flex;flex-direction:column;gap:10px}
 .bar{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;outline:none;border-radius:8px;padding:2px 4px;margin:0 -4px}
@@ -125,9 +128,17 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
     <div class="grid2">
       <section class="card" aria-labelledby="h-where"><h2 id="h-where">Where they're from</h2><div id="cities"></div><h3>Countries</h3><div id="countries"></div></section>
       <section class="card" aria-labelledby="h-pages"><h2 id="h-pages">Pages they look at, and how long they stay</h2><div id="pages"></div></section>
-      <section class="card" aria-labelledby="h-how"><h2 id="h-how">How they found the site</h2><div id="channels"></div><h3>Top sources</h3><div id="sources"></div></section>
-      <section class="card" aria-labelledby="h-dev"><h2 id="h-dev">Phone or computer</h2><div id="devices"></div></section>
+      <section class="card" aria-labelledby="h-how"><h2 id="h-how">How they found the site</h2><div id="channels"></div></section>
+      <section class="card" aria-labelledby="h-ref"><h2 id="h-ref">Which sites sent them</h2><div id="referrers"></div><h3>Exactly how each was tagged</h3><div id="sources"></div></section>
+      <section class="card" aria-labelledby="h-entry"><h2 id="h-entry">The page they land on first</h2><div id="entry"></div></section>
+      <section class="card" aria-labelledby="h-dev"><h2 id="h-dev">Phone or computer</h2><div id="devices"></div><h3>New or returning</h3><div id="newret"></div></section>
     </div>
+    <section class="card" aria-labelledby="h-when" style="margin-top:12px">
+      <h2 id="h-when">When they visit</h2>
+      <h3>Time of day (your time)</h3><div class="chart" id="hours"></div>
+      <h3>Day of the week</h3><div class="chart" id="weekdays"></div>
+      <details><summary>Show as a table</summary><div class="tablewrap"><table id="when-table"></table></div></details>
+    </section>
     <section class="card" aria-labelledby="h-who" style="margin-top:12px"><h2 id="h-who">Who's visiting</h2><div id="demo"></div></section>
     <section class="card" id="wix" aria-labelledby="h-wix" hidden><h2 id="h-wix">Before the new site (Wix)</h2><p class="lede" id="wix-sub" style="margin:0 0 12px"></p><div class="grid2" id="wix-body"></div></section>
     <div class="foot" id="foot"></div>
@@ -150,6 +161,9 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
     'Organic Social': 'Social media (Instagram, Facebook…)', 'Paid Social': 'A social media ad', 'Referral': 'A link on another website', 'Email': 'A link in an email',
     'Organic Maps': 'Google Maps', 'AI Assistant': 'An AI assistant (ChatGPT and similar)', 'Unassigned': "Couldn't tell", 'Cross-network': 'Google ads across networks', 'Display': 'A display ad' };
   var DEVICE = { desktop: 'Computer', mobile: 'Phone', tablet: 'Tablet', 'smart tv': 'TV' };
+  var SOURCE = { '(direct)': 'No site — typed the address or a bookmark', 'google': 'Google', 'bing': 'Bing', 'duckduckgo': 'DuckDuckGo',
+    'ig': 'Instagram', 'instagram.com': 'Instagram', 'l.instagram.com': 'Instagram', 'm.facebook.com': 'Facebook', 'facebook.com': 'Facebook',
+    'l.facebook.com': 'Facebook', 'chatgpt.com': 'ChatGPT', 'au.search.yahoo.com': 'Yahoo', '(not set)': "Couldn't tell" };
 
   var tip = $('tip');
   function showTip(x, y, strong, rest) {
@@ -203,6 +217,53 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
     var ul = el('ul', 'list');
     items.forEach(function (it) { var r = render(it); var li = el('li'); li.appendChild(el('span', null, r[0])); li.appendChild(el('span', null, r[1])); ul.appendChild(li); });
     host.appendChild(ul);
+  }
+
+  // a small column chart: one column per hour or weekday. Same marks as the bars (4px rounded cap, 2px gap, hover + focus).
+  function columns(host, items, label, value, tipOf, showLabel, empty) {
+    host.textContent = '';
+    var total = items.reduce(function (a, x) { return a + (value(x) || 0); }, 0);
+    if (!items.length || !total) { host.appendChild(el('p', 'empty', empty)); return; }
+    var W = Math.max(280, Math.round(host.clientWidth || 700)), H = W < 520 ? 120 : 150, T = 16, B = 22;
+    var n = items.length, max = Math.max.apply(null, items.map(value)) || 1;
+    var slot = W / n, w = Math.min(24, Math.max(4, slot - 6));
+    var NS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', host.id === 'hours' ? 'Visits by hour of the day. The table below lists every hour.' : 'Visits by day of the week. The table below lists every day.');
+    var mk = function (tag, attrs, text) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
+    items.forEach(function (it, i) {
+      var v = value(it) || 0, h = Math.max(v ? 3 : 0, (H - T - B) * (v / max)), x = i * slot + (slot - w) / 2, y = H - B - h;
+      if (h) svg.appendChild(mk('rect', { 'class': 'col', x: x.toFixed(1), y: y.toFixed(1), width: w.toFixed(1), height: h.toFixed(1), rx: Math.min(4, w / 2) }));
+      if (v === max) svg.appendChild(mk('text', { 'class': 'col-lbl', x: (x + w / 2).toFixed(1), y: (y - 5).toFixed(1), 'text-anchor': 'middle' }, NF.format(v)));
+      if (showLabel(i)) svg.appendChild(mk('text', { 'class': 'axis', x: (x + w / 2).toFixed(1), y: H - 6, 'text-anchor': 'middle', fill: 'rgba(244,246,248,.52)', 'font-size': '12' }, label(it)));
+      var hit = mk('rect', { 'class': 'col-hit', x: (i * slot).toFixed(1), y: 0, width: slot.toFixed(1), height: H, tabindex: '0', role: 'img' });
+      var t = tipOf(it);
+      hit.setAttribute('aria-label', t[0] + '. ' + t[1]);
+      hit.addEventListener('pointermove', function (e) { showTip(e.clientX, e.clientY, t[0], t[1]); });
+      hit.addEventListener('pointerleave', hideTip);
+      hit.addEventListener('focus', function () { var r = hit.getBoundingClientRect(); showTip(r.left + r.width / 2, r.top, t[0], t[1]); });
+      hit.addEventListener('blur', hideTip);
+      svg.appendChild(hit);
+    });
+    host.appendChild(svg);
+  }
+
+  function whenTable(host, hours, days) {
+    host.textContent = '';
+    var head = el('tr'); ['Hour', 'Visits', 'Day', 'Visits'].forEach(function (h, i) { head.appendChild(el('th', i % 2 ? 'n' : null, h)); });
+    var thead = el('thead'); thead.appendChild(head); host.appendChild(thead);
+    var tb = el('tbody');
+    for (var i = 0; i < 24; i++) {
+      var tr = el('tr');
+      tr.appendChild(el('td', null, (hours[i] ? hours[i].hour : String(i)) + ':00'));
+      tr.appendChild(el('td', 'n', hours[i] ? NF.format(hours[i].visits) : '0'));
+      tr.appendChild(el('td', null, days[i] ? days[i].day : ''));
+      tr.appendChild(el('td', 'n', days[i] ? NF.format(days[i].visits) : ''));
+      tb.appendChild(tr);
+    }
+    host.appendChild(tb);
   }
 
   function lineChart(host, points) {
@@ -332,6 +393,30 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
       shown: function (c) { return num(c.visits) + (c.visits === 1 ? ' visit' : ' visits'); },
       tip: function (c) { return [(CHANNEL[c.channel] || c.channel) + ': ' + num(c.visits) + ' visits', num(c.visitors) + ' visitors']; }, empty: 'Not yet.' });
     list($('sources'), p && p.sources, function (s) { return [s.source + (s.medium && s.medium !== '(none)' ? ' · ' + s.medium : ''), num(s.visits)]; }, 'Not yet.');
+    // which sites sent them (Wix's "traffic sources": the sites people navigate from) — kept apart from the categories above
+    bars($('referrers'), p && p.referrers, { label: function (r) { return SOURCE[r.source] || r.source; }, value: function (r) { return r.visits; },
+      shown: function (r) { return num(r.visits) + (r.visits === 1 ? ' visit' : ' visits'); },
+      tip: function (r) { return [(SOURCE[r.source] || r.source) + ': ' + num(r.visits) + ' visits', num(r.visitors) + ' visitors']; }, empty: 'Not yet.' });
+    bars($('entry'), p && p.entry_pages, { label: function (e) { return PAGE[e.path] || e.path; }, sub: function (e) { return e.path + ' · ' + pct(e.bounce_rate) + ' left straight away'; },
+      value: function (e) { return e.visits; }, shown: function (e) { return num(e.visits) + (e.visits === 1 ? ' visit' : ' visits'); },
+      tip: function (e) { return [(PAGE[e.path] || e.path) + ': ' + num(e.visits) + ' visits', num(e.visitors) + ' visitors · ' + pct(e.bounce_rate) + ' left straight away']; },
+      empty: 'Not yet.' });
+    var nr = p && p.new_returning;
+    if (nr) {
+      var nrTotal = (nr['new'] || 0) + (nr.returning || 0);
+      var newPct = nrTotal ? Math.round(100 * (nr['new'] || 0) / nrTotal) : 0;  // the second share is the remainder, so the two always make 100%
+      bars($('newret'), [{ k: 'First time here', v: nr['new'] || 0, s: newPct }, { k: 'Been before', v: nr.returning || 0, s: 100 - newPct }],
+        { label: function (x) { return x.k; }, value: function (x) { return x.v; },
+          shown: function (x) { return nrTotal ? x.s + '%' : num(x.v); },
+          tip: function (x) { return [x.k + ': ' + num(x.v) + (x.v === 1 ? ' visitor' : ' visitors'), nrTotal ? Math.round(100 * x.v / nrTotal) + '% of everyone' : '']; } });
+    } else { bars($('newret'), null, { label: function () {}, value: function () {}, empty: 'Not yet.' }); }
+    columns($('hours'), (p && p.by_hour) || [], function (x) { return x.hour; }, function (x) { return x.visits; },
+      function (x) { return [x.hour + ':00–' + x.hour + ':59', num(x.visits) + ' visits · ' + num(x.visitors) + ' visitors']; },
+      function (i) { return i % 6 === 0; }, 'The hours start filling in once people visit.');
+    columns($('weekdays'), (p && p.by_weekday) || [], function (x) { return x.day.slice(0, 3); }, function (x) { return x.visits; },
+      function (x) { return [x.day, num(x.visits) + ' visits · ' + num(x.visitors) + ' visitors']; },
+      function () { return true; }, 'The days start filling in once people visit.');
+    whenTable($('when-table'), (p && p.by_hour) || [], (p && p.by_weekday) || []);
     var devTotal = p && p.devices ? p.devices.reduce(function (a, x) { return a + x.visitors; }, 0) : 0;
     bars($('devices'), p && p.devices, { label: function (x) { return DEVICE[x.device] || x.device; }, value: function (x) { return x.visitors; },
       shown: function (x) { return devTotal ? Math.round(100 * x.visitors / devTotal) + '%' : num(x.visitors); },
@@ -382,7 +467,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
   var resizeTimer = null, lastW = 0;
   window.addEventListener('resize', function () {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function () { var w = $('line').clientWidth; if (DATA && w && Math.abs(w - lastW) > 24) { lastW = w; lineChart($('line'), (DATA.daily || []).slice(-DAYS)); } }, 150);
+    resizeTimer = setTimeout(function () { var w = $('line').clientWidth; if (DATA && w && Math.abs(w - lastW) > 24) { lastW = w; render(); } }, 150);
   });
 
   document.querySelectorAll('.range button').forEach(function (b) {
