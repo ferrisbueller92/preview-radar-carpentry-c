@@ -292,11 +292,23 @@
       .then(function(d){ clearTimeout(t); if(usable(d).length) ok(d); else no(new Error('empty')); },function(e){ clearTimeout(t); no(e); }); }); }
   var PLAY='<span class="ig-kind ig-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>';
   var ALBUM='<span class="ig-kind ig-album" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6H2v14a2 2 0 0 0 2 2h14v-2H4zm16-4H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg></span>';
+  /* 17 Sep 2026 (Beth: her old site's Instagram videos "automatically played… as soon as you [scroll] down to it, it would be
+     moving"): a video tile carries the address of a small silent preview (assets/ig/<id>.preview.mp4, made by
+     round5/ig_tile_previews.py), matched to a live-feed post by its permalink, else the post's own video; the tile
+     controller below plays it in view. An album whose first item is a video moves too. */
+  var previews={};
+  function previewMap(s){ ((s&&s.posts)||[]).forEach(function(p){ if(p&&p.permalink&&p.previewUrl) previews[p.permalink]=p.previewUrl; }); }
+  function playable(p){
+    if(p.mediaType==='VIDEO') return p.previewUrl||previews[p.permalink]||p.mediaUrl||'';
+    if(p.mediaType==='CAROUSEL_ALBUM'){ var k=(p.children||[])[0]; if(k&&k.mediaType==='VIDEO') return p.previewUrl||previews[p.permalink]||k.mediaUrl||''; }
+    return '';
+  }
   function card(p,i){
     var cap=(p.caption||p.prunedCaption||'').trim();
     var kind=p.mediaType==='VIDEO'?PLAY:(p.mediaType==='CAROUSEL_ALBUM'?ALBUM:'');
     var label=(p.mediaType==='VIDEO'?'Video: ':'')+(cap.replace(/\s+/g,' ').slice(0,90)||'Instagram post from RADAR Carpentry');
-    return '<a class="ig-card" href="'+esc(p.permalink)+'" target="_blank" rel="noopener" data-i="'+i+'" aria-label="'+esc(label)+'"><img src="'+esc(thumb(p))+'" alt="'+esc(p.altText||'Instagram post from RADAR Carpentry')+'" loading="lazy" width="700" height="700">'+kind+'<span class="ig-hover" aria-hidden="true"><span>'+esc(cap)+'</span></span></a>';
+    var vid=playable(p);
+    return '<a class="ig-card'+(vid?' has-video':'')+'" href="'+esc(p.permalink)+'" target="_blank" rel="noopener" data-i="'+i+'" aria-label="'+esc(label)+'"'+(vid?' data-video="'+esc(vid)+'" data-poster="'+esc(thumb(p))+'"':'')+'><img src="'+esc(thumb(p))+'" alt="'+esc(p.altText||'Instagram post from RADAR Carpentry')+'" loading="lazy" width="700" height="700">'+kind+'<span class="ig-hover" aria-hidden="true"><span>'+esc(cap)+'</span></span></a>';
   }
 
   /* ---------- lightbox (one per page) ---------- */
@@ -337,13 +349,13 @@
     dlg.addEventListener('click',function(e){ if(e.target===dlg) dlg.close(); });
     dlg.addEventListener('keydown',function(e){ if(e.key==='ArrowLeft'){ step(-1); } else if(e.key==='ArrowRight'){ step(1); } });
     dlg.addEventListener('close',function(){
-      stopMedia(); document.body.classList.remove('igd-open');
+      stopMedia(); document.body.classList.remove('igd-open'); tilesResume();
       if(window.__radarLenis&&window.__radarLenis.start) window.__radarLenis.start();
       if(opener&&opener.focus) opener.focus(); opener=null;
     });
     box={open:function(posts,i,from){
       list=posts||[]; if(!list.length) return; idx=Math.max(0,Math.min(i||0,list.length-1)); opener=from||document.activeElement;
-      render(); document.body.classList.add('igd-open');
+      render(); document.body.classList.add('igd-open'); tilesPause();
       if(window.__radarLenis&&window.__radarLenis.stop) window.__radarLenis.stop();
       dlg.showModal(); close.focus();
     }};
@@ -354,6 +366,39 @@
       e.preventDefault(); box.open(getPosts(),parseInt(a.getAttribute('data-i'),10)||0,a);
     });
   }
+
+  /* ---------- tile videos play in view (17 Sep 2026) ----------
+     Her old site's Instagram tiles moved as soon as they scrolled into view. A video tile gets a muted, inline, looping
+     <video> only when it comes near the viewport (no bytes before that), plays while in view and pauses out of it; the
+     picture stays underneath as the first frame. No autoplay under reduced motion, data saver or a slow connection (the
+     play glyph stays and the lightbox still plays the post). At most 8 tiles play at once; all pause while the lightbox
+     is open. */
+  var conn=navigator.connection||{};
+  var autoplayOK=!reduce&&('IntersectionObserver' in window)&&!conn.saveData&&!/2g/.test(conn.effectiveType||'');
+  var MAX_PLAYING=8, playing=[], inview=[], tilesHeld=false;
+  function tileVideo(a){
+    var v=a.querySelector('video'); if(v) return v;
+    v=document.createElement('video'); v.muted=true; v.defaultMuted=true; v.loop=true; v.playsInline=true;
+    v.setAttribute('muted',''); v.setAttribute('playsinline',''); v.setAttribute('loop',''); v.setAttribute('aria-hidden','true'); v.tabIndex=-1;
+    v.preload='none'; v.poster=a.getAttribute('data-poster')||''; v.src=a.getAttribute('data-video');
+    a.insertBefore(v,a.querySelector('.ig-kind')||a.querySelector('.ig-hover')); return v;
+  }
+  function stopTile(a){ a.classList.remove('is-playing'); var v=a.querySelector('video'); if(v){ try{ v.pause(); }catch(e){} } var i=playing.indexOf(a); if(i>-1) playing.splice(i,1); }
+  function playTile(a){
+    if(tilesHeld||playing.indexOf(a)>-1||playing.length>=MAX_PLAYING) return;
+    var v=tileVideo(a); playing.push(a);
+    var p=v.play();
+    if(p&&p.then) p.then(function(){ if(playing.indexOf(a)>-1&&!v.paused) a.classList.add('is-playing'); },function(){ stopTile(a); });
+    else a.classList.add('is-playing');
+  }
+  var tio=autoplayOK?new IntersectionObserver(function(es){
+    es.forEach(function(e){ var a=e.target, i=inview.indexOf(a);
+      if(e.isIntersecting){ if(i<0) inview.push(a); } else { if(i>-1) inview.splice(i,1); stopTile(a); } });
+    inview.forEach(playTile);
+  },{rootMargin:'160px 0px',threshold:0.35}):null;
+  function tiles(root){ if(!tio) return; Array.prototype.forEach.call(root.querySelectorAll('a.ig-card[data-video]'),function(a){ tio.observe(a); }); }
+  function tilesPause(){ tilesHeld=true; inview.slice().forEach(stopTile); }
+  function tilesResume(){ tilesHeld=false; inview.forEach(playTile); }
 
   /* ---------- the row on the home page ---------- */
   (function(){
@@ -373,7 +418,7 @@
       prev.hidden=!over; next.hidden=!over;
       prev.disabled=track.scrollLeft<=2; next.disabled=track.scrollLeft+track.clientWidth>=track.scrollWidth-2;
     }
-    function mount(html){ track.innerHTML=html; row.classList.add('is-live'); arrows(); setTimeout(arrows,300); }
+    function mount(html){ track.innerHTML=html; row.classList.add('is-live'); tiles(track); arrows(); setTimeout(arrows,300); }
     function showEmpty(){ row.classList.add('is-empty'); if(empty) empty.hidden=false; if(prev) prev.hidden=true; if(next) next.hidden=true; }
     function renderPosts(data){
       var ok=usable(data); if(!ok.length) return false;
@@ -384,9 +429,10 @@
       if(!items.length) return false;
       mount(items.map(stillCard).join('')); return true;
     }
-    (feed?live(feed).catch(function(){ return load(snap); }):load(snap))
-      .catch(function(){ return null; })
-      .then(function(d){ if(!renderPosts(d)) throw new Error('no posts'); return true; })
+    // the saved snapshot also carries the tile previews; when a live feed is named it is read alongside so its previews match by permalink
+    var pv=feed?load(snap).then(previewMap).catch(function(){}):Promise.resolve();
+    Promise.all([(feed?live(feed).catch(function(){ return load(snap); }):load(snap)).catch(function(){ return null; }),pv])
+      .then(function(r){ if(!renderPosts(r[0])) throw new Error('no posts'); return true; })
       .catch(function(){ return fallback?load(fallback).then(renderStills):false; })
       .then(function(ok){ if(!ok) showEmpty(); })
       .catch(showEmpty);
@@ -406,9 +452,10 @@
     var feed=fixture?'':(grid.getAttribute('data-feed')||'');
     var snap=fixture?'assets/data/ig-feed.fixture.json':grid.getAttribute('data-snapshot');
     var posts=[];
-    (feed?live(feed).catch(function(){ return load(snap); }):load(snap)).then(function(d){
-      var ok=usable(d); if(!ok.length) return;
-      posts=ok; grid.innerHTML=ok.map(card).join('');
+    var pv=feed?load(snap).then(previewMap).catch(function(){}):Promise.resolve();
+    Promise.all([(feed?live(feed).catch(function(){ return load(snap); }):load(snap)),pv]).then(function(r){
+      var d=r[0], ok=usable(d); if(!ok.length) return;
+      posts=ok; grid.innerHTML=ok.map(card).join(''); tiles(grid);
       if(sec) sec.hidden=false; also.forEach(function(el){ el.hidden=false; });
       if(window.ScrollTrigger&&window.ScrollTrigger.refresh) window.ScrollTrigger.refresh();
     }).catch(function(){});
