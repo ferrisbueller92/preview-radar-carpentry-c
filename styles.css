@@ -321,7 +321,8 @@ html.js [data-clip].in{clip-path:inset(0 0 0% 0)}
 .ig-hover{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;padding:14px 16px;background:rgba(9,21,35,.88);opacity:0;transition:opacity .25s}
 .ig-hover>span{display:-webkit-box;-webkit-line-clamp:9;-webkit-box-orient:vertical;overflow:hidden;text-align:center;font-size:.86rem;line-height:1.45;color:var(--on-dark);white-space:pre-line;overflow-wrap:anywhere}
 .ig-card:hover .ig-hover,.ig-card:focus-visible .ig-hover{opacity:1}
-.ig-card video{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;background:transparent}
+.ig-card video{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;background:transparent;opacity:0;transition:opacity .25s}
+.ig-card.is-playing video{opacity:1}
 .ig-play{transition:opacity .3s}
 .ig-card.is-playing .ig-play{opacity:0}
 .ig-card.is-still .ig-hover{display:none}

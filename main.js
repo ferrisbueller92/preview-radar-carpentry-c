@@ -375,30 +375,41 @@
      is open. */
   var conn=navigator.connection||{};
   var autoplayOK=!reduce&&('IntersectionObserver' in window)&&!conn.saveData&&!/2g/.test(conn.effectiveType||'');
-  var MAX_PLAYING=8, playing=[], inview=[], tilesHeld=false;
+  var MAX_PLAYING=8, playing=[], inview=[], tilesHeld=false, loading=null;
   function tileVideo(a){
     var v=a.querySelector('video'); if(v) return v;
     v=document.createElement('video'); v.muted=true; v.defaultMuted=true; v.loop=true; v.playsInline=true;
     v.setAttribute('muted',''); v.setAttribute('playsinline',''); v.setAttribute('loop',''); v.setAttribute('aria-hidden','true'); v.tabIndex=-1;
-    v.preload='none'; v.poster=a.getAttribute('data-poster')||''; v.src=a.getAttribute('data-video');
+    v.preload='none'; v.src=a.getAttribute('data-video');  /* no poster: the tile's own picture shows until frames play (styles: video fades in with .is-playing) */
     a.insertBefore(v,a.querySelector('.ig-kind')||a.querySelector('.ig-hover')); return v;
   }
-  function stopTile(a){ a.classList.remove('is-playing'); var v=a.querySelector('video'); if(v){ try{ v.pause(); }catch(e){} } var i=playing.indexOf(a); if(i>-1) playing.splice(i,1); }
-  function playTile(a){
-    if(tilesHeld||playing.indexOf(a)>-1||playing.length>=MAX_PLAYING) return;
-    var v=tileVideo(a); playing.push(a);
+  function stopTile(a){
+    a.classList.remove('is-playing'); var v=a.querySelector('video'); if(v){ try{ v.pause(); }catch(e){} }
+    var i=playing.indexOf(a); if(i>-1) playing.splice(i,1); if(loading===a) loading=null;
+  }
+  // Tiles start ONE AT A TIME: Safari's engine loads only a few media files at once and leaves the rest waiting for ever
+  // when eight are started together (seen on the live grid, 17 Sep 2026). The next tile begins when the previous one is
+  // playing, or after 4 s so a slow file never blocks the rest; a tile leaving the view frees a slot for the next waiting one.
+  function pump(){
+    if(tilesHeld||loading||playing.length>=MAX_PLAYING) return;
+    var a=null; for(var i=0;i<inview.length;i++){ if(playing.indexOf(inview[i])<0&&!inview[i].hasAttribute('data-noplay')){ a=inview[i]; break; } }
+    if(!a) return;
+    loading=a; playing.push(a);
+    var v=tileVideo(a), done=false, timer=null;
+    function next(){ if(done) return; done=true; clearTimeout(timer); if(loading===a) loading=null; pump(); }
     var p=v.play();
-    if(p&&p.then) p.then(function(){ if(playing.indexOf(a)>-1&&!v.paused) a.classList.add('is-playing'); },function(){ stopTile(a); });
-    else a.classList.add('is-playing');
+    if(p&&p.then) p.then(function(){ if(playing.indexOf(a)>-1&&!v.paused) a.classList.add('is-playing'); next(); },function(){ a.setAttribute('data-noplay',''); stopTile(a); next(); });
+    else { a.classList.add('is-playing'); next(); }
+    timer=setTimeout(next,4000);
   }
   var tio=autoplayOK?new IntersectionObserver(function(es){
     es.forEach(function(e){ var a=e.target, i=inview.indexOf(a);
       if(e.isIntersecting){ if(i<0) inview.push(a); } else { if(i>-1) inview.splice(i,1); stopTile(a); } });
-    inview.forEach(playTile);
+    pump();
   },{rootMargin:'160px 0px',threshold:0.35}):null;
   function tiles(root){ if(!tio) return; Array.prototype.forEach.call(root.querySelectorAll('a.ig-card[data-video]'),function(a){ tio.observe(a); }); }
   function tilesPause(){ tilesHeld=true; inview.slice().forEach(stopTile); }
-  function tilesResume(){ tilesHeld=false; inview.forEach(playTile); }
+  function tilesResume(){ tilesHeld=false; pump(); }
 
   /* ---------- the row on the home page ---------- */
   (function(){
