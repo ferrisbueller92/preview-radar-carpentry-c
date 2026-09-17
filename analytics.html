@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Website analytics · RADAR Carpentry</title>
+<link rel="icon" type="image/png" href="favicon.png?v=2">
+<meta name="theme-color" content="#0E1C30">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<style>
+/* RADAR analytics page (17 Sep 2026). The site's own tokens; one chart green (#3CA473) validated with the dataviz
+   palette checks against both navy surfaces (lightness band, chroma, contrast ≥ 3:1). Text never wears the data colour. */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--navy);color:var(--on-dark);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+:root{--mark:#3CA473;--card:var(--navy-800);--grid:rgba(244,246,248,.10)}
+.wrap{width:100%;max-width:1200px;margin:0 auto;padding:0 clamp(16px,4vw,48px)}
+.top{border-bottom:1px solid var(--navy-line);background:var(--navy-900)}
+.top-in{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px;flex-wrap:wrap}
+.logo{height:46px;width:auto;display:block}
+.top-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right}
+.ey{display:inline-flex;align-items:center;gap:.6em;font-family:var(--f-mono);font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--on-dark-soft)}
+.ey::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);flex:none}
+.muted{color:var(--on-dark-mute);font-size:.86rem}
+main.wrap{padding-top:clamp(24px,4vw,40px);padding-bottom:56px}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;letter-spacing:-.01em;margin:0}
+h1{font-size:clamp(1.55rem,3.2vw,2.35rem);line-height:1.18;max-width:28ch}
+h2{font-size:1.12rem;margin-bottom:14px}
+h3{font-size:.8rem;font-family:var(--f-mono);text-transform:uppercase;letter-spacing:.14em;color:var(--on-dark-mute);font-weight:700;margin:22px 0 10px}
+.lede{color:var(--on-dark-soft);margin:10px 0 0;max-width:62ch}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.range{display:inline-flex;border:1px solid var(--navy-line);border-radius:999px;padding:3px;background:var(--navy-900)}
+.range button{appearance:none;border:0;background:transparent;color:var(--on-dark-soft);font:600 .9rem var(--f-body);padding:.5em 1.05em;border-radius:999px;cursor:pointer;min-height:40px}
+.range button[aria-pressed="true"]{background:var(--green-btn);color:#fff}
+.range button:focus-visible{outline:2px solid var(--green-bright);outline-offset:2px}
+.tiles{display:grid;grid-template-columns:1.3fr repeat(4,1fr);gap:12px;margin-bottom:12px}
+.tile{background:var(--card);border:1px solid var(--navy-line);border-radius:var(--r-lg);padding:16px 18px;min-width:0}
+.tile .lbl{font-size:.86rem;color:var(--on-dark-soft)}
+.tile .val{font-family:var(--f-body);font-weight:600;font-size:1.9rem;line-height:1.15;margin-top:6px;overflow-wrap:anywhere}
+.tile.hero .val{font-size:clamp(2.6rem,5vw,3.4rem)}
+.tile .note{font-size:.8rem;color:var(--on-dark-mute);margin-top:4px}
+.card{background:var(--card);border:1px solid var(--navy-line);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:12px;min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid2 .card{margin-bottom:0}
+.empty{color:var(--on-dark-mute);font-size:.92rem;margin:4px 0}
+/* line chart */
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart svg:focus-visible{outline:2px solid var(--green-bright);outline-offset:4px;border-radius:6px}
+.axis text{fill:var(--on-dark-mute);font:12px var(--f-body);font-variant-numeric:tabular-nums}
+.gridline{stroke:var(--grid);stroke-width:1}
+.line{fill:none;stroke:var(--mark);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.area{fill:var(--mark);opacity:.1}
+.cross{stroke:rgba(244,246,248,.45);stroke-width:1}
+.dot{fill:var(--mark);stroke:var(--card);stroke-width:2}
+.endlbl{fill:var(--on-dark);font:600 13px var(--f-body)}
+/* bars */
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;outline:none;border-radius:8px;padding:2px 4px;margin:0 -4px}
+.bar:focus-visible{box-shadow:0 0 0 2px var(--green-bright)}
+.bar .row{display:flex;justify-content:space-between;gap:12px;font-size:.92rem}
+.bar .name{overflow-wrap:anywhere}
+.bar .name small{display:block;color:var(--on-dark-mute);font-size:.78rem}
+.bar .num{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--on-dark)}
+.bar .track{height:12px;position:relative}
+.bar .fill{position:absolute;left:0;top:0;height:12px;background:var(--mark);border-radius:0 4px 4px 0;min-width:2px}
+.bar:hover .fill,.bar:focus .fill{filter:brightness(1.12)}
+.list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:.9rem}
+.list li{display:flex;justify-content:space-between;gap:12px;color:var(--on-dark-soft)}
+.list li span:last-child{white-space:nowrap;color:var(--on-dark);font-variant-numeric:tabular-nums}
+details{margin-top:12px}
+summary{cursor:pointer;color:var(--on-dark-soft);font-size:.88rem}
+table{border-collapse:collapse;width:100%;margin-top:8px;font-size:.88rem}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--navy-line)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--navy-900);border:1px solid var(--navy-line);border-radius:8px;padding:8px 10px;font-size:.86rem;box-shadow:0 12px 30px rgba(0,0,0,.35);max-width:260px}
+.tip b{display:block;font-size:1rem;font-weight:600}
+.tip span{color:var(--on-dark-soft)}
+.state{max-width:560px;margin:10vh auto;text-align:center}
+.state p{color:var(--on-dark-soft)}
+.foot{color:var(--on-dark-mute);font-size:.84rem;margin-top:22px;display:flex;flex-direction:column;gap:6px}
+.pill{display:inline-block;font-size:.76rem;color:var(--on-dark-soft);border:1px solid var(--navy-line);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:middle}
+.fade{opacity:.55;transition:opacity .15s}
+@media (max-width:980px){.tiles{grid-template-columns:repeat(2,1fr)}.tile.hero{grid-column:1/-1}.grid2{grid-template-columns:1fr}}
+@media (max-width:420px){.tile .val{font-size:1.55rem}.top-meta{align-items:flex-start;text-align:left}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-in">
+    <img src="assets/images/radar-wordmark-ondark.png" alt="RADAR Carpentry" class="logo" width="160" height="46">
+    <div class="top-meta"><span class="ey">Website analytics</span><span class="muted" id="through"></span></div>
+  </div>
+</header>
+<main id="main" class="wrap">
+  <section class="state" id="loading"><p>Loading…</p></section>
+  <section class="state" id="locked" hidden>
+    <h1 style="margin:0 auto">This page is private.</h1>
+    <p id="locked-why">Open it with the link Dave sent you.</p>
+  </section>
+  <section id="dash" hidden>
+    <div class="head">
+      <div>
+        <h1 id="answer"></h1>
+        <p class="lede" id="sub"></p>
+      </div>
+      <div class="range" role="group" aria-label="Time period">
+        <button type="button" data-days="7" aria-pressed="false">Last 7 days</button>
+        <button type="button" data-days="28" aria-pressed="true">Last 28 days</button>
+      </div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <section class="card" aria-labelledby="h-trend">
+      <h2 id="h-trend">Visitors each day</h2>
+      <div class="chart" id="line"></div>
+      <details><summary>Show as a table</summary><div class="tablewrap"><table id="line-table"></table></div></details>
+    </section>
+    <div class="grid2">
+      <section class="card" aria-labelledby="h-where"><h2 id="h-where">Where they're from</h2><div id="cities"></div><h3>Countries</h3><div id="countries"></div></section>
+      <section class="card" aria-labelledby="h-pages"><h2 id="h-pages">Pages they look at, and how long they stay</h2><div id="pages"></div></section>
+      <section class="card" aria-labelledby="h-how"><h2 id="h-how">How they found the site</h2><div id="channels"></div><h3>Top sources</h3><div id="sources"></div></section>
+      <section class="card" aria-labelledby="h-dev"><h2 id="h-dev">Phone or computer</h2><div id="devices"></div></section>
+    </div>
+    <section class="card" aria-labelledby="h-who" style="margin-top:12px"><h2 id="h-who">Who's visiting</h2><div id="demo"></div></section>
+    <section class="card" id="wix" aria-labelledby="h-wix" hidden><h2 id="h-wix">Before the new site (Wix)</h2><p class="lede" id="wix-sub" style="margin:0 0 12px"></p><div class="grid2" id="wix-body"></div></section>
+    <div class="foot" id="foot"></div>
+  </section>
+</main>
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var NF = new Intl.NumberFormat('en-AU');
+  var CF = new Intl.NumberFormat('en-AU', { notation: 'compact', maximumFractionDigits: 1 });
+  var num = function (n) { return n == null ? 'not yet' : (Math.abs(n) >= 10000 ? CF.format(n) : NF.format(n)); };
+  var pct = function (r) { return r == null ? 'not yet' : Math.round(r * 100) + '%'; };
+  var dur = function (s) { if (s == null) return 'not yet'; s = Math.round(s); var m = Math.floor(s / 60), r = s % 60; return m ? m + 'm ' + (r < 10 ? '0' : '') + r + 's' : r + 's'; };
+  var day = function (iso, opts) { return new Date(iso + 'T00:00:00Z').toLocaleDateString('en-AU', Object.assign({ timeZone: 'UTC', day: 'numeric', month: 'short' }, opts || {})); };
+  var el = function (tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  var PAGE = { '/': 'Home', '/index.html': 'Home', '/projects': 'Projects', '/projects.html': 'Projects', '/contact': 'Get in touch', '/contact.html': 'Get in touch' };
+  var CHANNEL = { 'Direct': 'Typed the address or used a bookmark', 'Organic Search': 'Google or another search (free listing)', 'Paid Search': 'A Google ad',
+    'Organic Social': 'Social media (Instagram, Facebook…)', 'Paid Social': 'A social media ad', 'Referral': 'A link on another website', 'Email': 'A link in an email',
+    'Organic Maps': 'Google Maps', 'AI Assistant': 'An AI assistant (ChatGPT and similar)', 'Unassigned': "Couldn't tell", 'Cross-network': 'Google ads across networks', 'Display': 'A display ad' };
+  var DEVICE = { desktop: 'Computer', mobile: 'Phone', tablet: 'Tablet', 'smart tv': 'TV' };
+
+  var tip = $('tip');
+  function showTip(x, y, strong, rest) {
+    tip.textContent = '';
+    tip.appendChild(el('b', null, strong));
+    if (rest) tip.appendChild(el('span', null, rest));
+    tip.hidden = false;
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    var left = Math.min(window.innerWidth - w - 8, Math.max(8, x + 14));
+    var top = y - h - 12; if (top < 8) top = y + 16;
+    tip.style.left = left + 'px'; tip.style.top = top + 'px';
+  }
+  function hideTip() { tip.hidden = true; }
+
+  function locked(why) {
+    $('loading').hidden = true; $('dash').hidden = true; $('locked').hidden = false;
+    if (why) $('locked-why').textContent = why;
+  }
+
+  function bars(host, items, opts) {
+    host.textContent = '';
+    if (!items || !items.length) { host.appendChild(el('p', 'empty', opts.empty || 'Nothing to show yet.')); return; }
+    var max = Math.max.apply(null, items.map(opts.value)) || 1;
+    var wrap = el('div', 'bars');
+    items.forEach(function (it) {
+      var v = opts.value(it);
+      var row = el('div', 'bar'); row.tabIndex = 0;
+      var top = el('div', 'row');
+      var name = el('span', 'name', opts.label(it));
+      if (opts.sub) { var s = opts.sub(it); if (s) name.appendChild(el('small', null, s)); }
+      top.appendChild(name);
+      top.appendChild(el('span', 'num', opts.shown ? opts.shown(it) : num(v)));
+      var track = el('div', 'track'); var fill = el('div', 'fill'); fill.style.width = Math.max(0.6, (v / max) * 100) + '%';
+      track.appendChild(fill); row.appendChild(top); row.appendChild(track);
+      var tipText = opts.tip ? opts.tip(it) : null;
+      if (tipText) {
+        row.addEventListener('pointermove', function (e) { showTip(e.clientX, e.clientY, tipText[0], tipText[1]); });
+        row.addEventListener('pointerleave', hideTip);
+        row.addEventListener('focus', function () { var r = row.getBoundingClientRect(); showTip(r.left + r.width / 2, r.top, tipText[0], tipText[1]); });
+        row.addEventListener('blur', hideTip);
+        row.setAttribute('aria-label', tipText[0] + '. ' + (tipText[1] || ''));
+      }
+      wrap.appendChild(row);
+    });
+    host.appendChild(wrap);
+  }
+
+  function list(host, items, render, empty) {
+    host.textContent = '';
+    if (!items || !items.length) { host.appendChild(el('p', 'empty', empty || 'Nothing to show yet.')); return; }
+    var ul = el('ul', 'list');
+    items.forEach(function (it) { var r = render(it); var li = el('li'); li.appendChild(el('span', null, r[0])); li.appendChild(el('span', null, r[1])); ul.appendChild(li); });
+    host.appendChild(ul);
+  }
+
+  function lineChart(host, points) {
+    host.textContent = '';
+    var counted = points.filter(function (p) { return p.visitors != null; });
+    if (!counted.length) { host.appendChild(el('p', 'empty', 'The daily line starts once the first full day has been counted.')); return; }
+    // drawn at the container's real width so the axis text stays 12px on a phone (a fixed viewBox shrank it to ~5px)
+    var W = Math.max(280, Math.round(host.clientWidth || 760)), H = W < 520 ? 200 : 240, L = 36, R = 40, T = 14, B = 30;
+    var max = Math.max.apply(null, counted.map(function (p) { return p.visitors; }));
+    var step = max <= 4 ? 1 : max <= 10 ? 2 : max <= 25 ? 5 : max <= 50 ? 10 : max <= 100 ? 20 : Math.pow(10, Math.floor(Math.log10(max))) / 2;
+    var top = Math.max(step, Math.ceil(max / step) * step);
+    var n = points.length;
+    var x = function (i) { return L + (n === 1 ? (W - L - R) / 2 : i * (W - L - R) / (n - 1)); };
+    var y = function (v) { return T + (H - T - B) * (1 - v / top); };
+    var NS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('role', 'img'); svg.setAttribute('tabindex', '0');
+    svg.setAttribute('aria-label', 'Visitors each day, ' + day(points[0].date) + ' to ' + day(points[n - 1].date) + '. Use the arrow keys to read each day, or open the table below.');
+    var mk = function (tag, attrs, text) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
+    var axis = mk('g', { 'class': 'axis' });
+    for (var v = 0; v <= top; v += step) {
+      axis.appendChild(mk('line', { 'class': 'gridline', x1: L, x2: W - R, y1: y(v), y2: y(v) }));
+      axis.appendChild(mk('text', { x: L - 8, y: y(v) + 4, 'text-anchor': 'end' }, NF.format(v)));
+    }
+    var ticks = n <= 7 ? (W < 520 ? [0, Math.round((n - 1) / 2), n - 1] : points.map(function (_, i) { return i; })) : (W < 520 ? [0, Math.round((n - 1) / 2), n - 1] : [0, Math.round((n - 1) / 3), Math.round(2 * (n - 1) / 3), n - 1]);
+    ticks.forEach(function (i) { axis.appendChild(mk('text', { x: x(i), y: H - 8, 'text-anchor': i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle' }, day(points[i].date))); });
+    svg.appendChild(axis);
+    // counted runs drawn as separate segments (a day before counting started is a gap, never a zero)
+    var runs = [], cur = [];
+    points.forEach(function (p, i) { if (p.visitors == null) { if (cur.length) runs.push(cur); cur = []; } else cur.push(i); });
+    if (cur.length) runs.push(cur);
+    runs.forEach(function (run) {
+      var d = run.map(function (i, k) { return (k ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(points[i].visitors).toFixed(1); }).join(' ');
+      if (run.length > 1) svg.appendChild(mk('path', { 'class': 'area', d: d + ' L' + x(run[run.length - 1]).toFixed(1) + ' ' + y(0) + ' L' + x(run[0]).toFixed(1) + ' ' + y(0) + ' Z' }));
+      svg.appendChild(mk('path', { 'class': 'line', d: d }));
+      if (run.length === 1) svg.appendChild(mk('circle', { 'class': 'dot', cx: x(run[0]), cy: y(points[run[0]].visitors), r: 4 }));
+    });
+    var lastI = counted.length ? points.lastIndexOf(counted[counted.length - 1]) : n - 1;
+    svg.appendChild(mk('circle', { 'class': 'dot', cx: x(lastI), cy: y(points[lastI].visitors), r: 4 }));
+    svg.appendChild(mk('text', { 'class': 'endlbl', x: x(lastI) + 8, y: y(points[lastI].visitors) + 4 }, NF.format(points[lastI].visitors)));
+    var cross = mk('line', { 'class': 'cross', y1: T, y2: H - B, x1: 0, x2: 0, display: 'none' });
+    var hot = mk('circle', { 'class': 'dot', r: 4, cx: 0, cy: 0, display: 'none' });
+    svg.appendChild(cross); svg.appendChild(hot);
+    var hit = mk('rect', { x: L, y: 0, width: W - L - R, height: H, fill: 'transparent' });
+    svg.appendChild(hit);
+    var at = lastI;
+    function mark(i, cx, cy) {
+      at = i; var p = points[i];
+      cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.removeAttribute('display');
+      if (p.visitors == null) { hot.setAttribute('display', 'none'); showTip(cx, cy, day(p.date, { weekday: 'short' }), 'Not counted yet'); return; }
+      hot.setAttribute('cx', x(i)); hot.setAttribute('cy', y(p.visitors)); hot.removeAttribute('display');
+      showTip(cx, cy, NF.format(p.visitors) + (p.visitors === 1 ? ' visitor' : ' visitors'), day(p.date, { weekday: 'short' }) + ' · ' + NF.format(p.visits) + (p.visits === 1 ? ' visit' : ' visits'));
+    }
+    function fromPointer(e) {
+      var r = svg.getBoundingClientRect(); var sx = (e.clientX - r.left) * W / r.width;
+      var i = Math.max(0, Math.min(n - 1, Math.round((sx - L) / ((W - L - R) / Math.max(1, n - 1)))));
+      mark(i, e.clientX, e.clientY);
+    }
+    svg.addEventListener('pointermove', fromPointer);
+    var clear = function () { cross.setAttribute('display', 'none'); hot.setAttribute('display', 'none'); hideTip(); };
+    svg.addEventListener('pointerleave', clear);
+    svg.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault(); var i = Math.max(0, Math.min(n - 1, at + (e.key === 'ArrowRight' ? 1 : -1)));
+      var r = svg.getBoundingClientRect(); mark(i, r.left + (x(i) / W) * r.width, r.top + (y(points[i].visitors || 0) / H) * r.height);
+    });
+    svg.addEventListener('blur', clear);
+    host.appendChild(svg);
+  }
+
+  function table(host, points) {
+    host.textContent = '';
+    var head = el('tr'); ['Day', 'Visitors', 'Visits', 'Page views'].forEach(function (h, i) { head.appendChild(el('th', i ? 'n' : null, h)); });
+    var thead = el('thead'); thead.appendChild(head); host.appendChild(thead);
+    var tb = el('tbody');
+    points.slice().reverse().forEach(function (p) {
+      var tr = el('tr'); tr.appendChild(el('td', null, day(p.date, { weekday: 'short' })));
+      [p.visitors, p.visits, p.page_views].forEach(function (v) { tr.appendChild(el('td', 'n', v == null ? 'not counted' : NF.format(v))); });
+      tb.appendChild(tr);
+    });
+    host.appendChild(tb);
+  }
+
+  function tile(host, label, value, note, hero) {
+    var t = el('div', 'tile' + (hero ? ' hero' : ''));
+    t.appendChild(el('div', 'lbl', label)); t.appendChild(el('div', 'val', value)); if (note) t.appendChild(el('div', 'note', note));
+    host.appendChild(t);
+  }
+
+  var DATA = null, HISTORY = null, DAYS = 28;
+
+  function render() {
+    var d = DATA, p = d && d.periods ? d.periods[String(DAYS)] : null, t = p && p.totals;
+    var since = d && d.counting_since ? day(d.counting_since, { year: 'numeric' }) : null;
+    $('through').textContent = d && d.data_through ? 'Up to ' + day(d.data_through, { weekday: 'short', year: 'numeric' }) + ' · updated every morning' : '';
+    document.querySelectorAll('.range button').forEach(function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.days) === DAYS)); });
+    // the answer first
+    if (!t) {
+      $('answer').textContent = since ? 'Counting started ' + since + '.' : 'Counting has just started.';
+      $('sub').textContent = 'The first numbers arrive the morning after the first full day. Nothing here is estimated: until Google has counted a day, it shows as "not yet".';
+    } else {
+      var who = t.visitors === 1 ? '1 person' : NF.format(t.visitors) + ' people';
+      var leads = p.leads ? ' and ' + (p.leads === 1 ? '1 sent an enquiry' : NF.format(p.leads) + ' sent enquiries') : '';
+      $('answer').textContent = who + ' visited the site in the last ' + DAYS + ' days' + leads + '.';
+      $('sub').textContent = p.days_counted < p.days ? 'Counting started ' + since + ', so this covers ' + p.days_counted + ' of the ' + p.days + ' days so far.' : 'From ' + day(p.start) + ' to ' + day(p.end) + '.';
+    }
+    var tiles = $('tiles'); tiles.textContent = '';
+    tile(tiles, 'Visitors', num(t && t.visitors), t && t.new_visitors != null ? NF.format(t.new_visitors) + ' new to the site' : null, true);
+    tile(tiles, 'Visits', num(t && t.visits), t ? NF.format(t.page_views) + ' pages viewed' : null);
+    tile(tiles, 'Enquiries sent', num(p && p.leads), 'from the website form');
+    tile(tiles, 'Left straight away', pct(t && t.bounce_rate), 'bounce rate: left within 10 seconds without clicking further');
+    tile(tiles, 'Average visit', dur(t && t.avg_visit_seconds), 'how long a visit lasts');
+
+    var daily = (d && d.daily || []).slice(-DAYS);
+    lineChart($('line'), daily); table($('line-table'), daily);
+
+    bars($('cities'), p && p.cities, { label: function (c) { return c.city; }, sub: function (c) { return [c.region, c.country].filter(Boolean).join(', '); },
+      value: function (c) { return c.visitors; }, shown: function (c) { return num(c.visitors); },
+      tip: function (c) { return [c.city + ': ' + num(c.visitors) + (c.visitors === 1 ? ' visitor' : ' visitors'), num(c.visits) + ' visits']; },
+      empty: t ? 'Google hasn’t placed any visitors in a city yet.' : 'Not yet.' });
+    list($('countries'), p && p.countries, function (c) { return [c.country, num(c.visitors)]; }, 'Not yet.');
+    bars($('pages'), p && p.pages, { label: function (x) { return PAGE[x.path] || x.title || x.path; }, sub: function (x) { return x.path + ' · ' + dur(x.avg_engagement_seconds) + ' on the page'; },
+      value: function (x) { return x.views; }, shown: function (x) { return num(x.views) + (x.views === 1 ? ' view' : ' views'); },
+      tip: function (x) { return [(PAGE[x.path] || x.path) + ': ' + num(x.views) + ' views', dur(x.avg_engagement_seconds) + ' average time on the page · ' + pct(x.bounce_rate) + ' left straight away']; },
+      empty: 'Not yet.' });
+    bars($('channels'), p && p.channels, { label: function (c) { return CHANNEL[c.channel] || c.channel; }, value: function (c) { return c.visits; },
+      shown: function (c) { return num(c.visits) + (c.visits === 1 ? ' visit' : ' visits'); },
+      tip: function (c) { return [(CHANNEL[c.channel] || c.channel) + ': ' + num(c.visits) + ' visits', num(c.visitors) + ' visitors']; }, empty: 'Not yet.' });
+    list($('sources'), p && p.sources, function (s) { return [s.source + (s.medium && s.medium !== '(none)' ? ' · ' + s.medium : ''), num(s.visits)]; }, 'Not yet.');
+    var devTotal = p && p.devices ? p.devices.reduce(function (a, x) { return a + x.visitors; }, 0) : 0;
+    bars($('devices'), p && p.devices, { label: function (x) { return DEVICE[x.device] || x.device; }, value: function (x) { return x.visitors; },
+      shown: function (x) { return devTotal ? Math.round(100 * x.visitors / devTotal) + '%' : num(x.visitors); },
+      tip: function (x) { return [(DEVICE[x.device] || x.device) + ': ' + num(x.visitors) + ' visitors', num(x.visits) + ' visits']; }, empty: 'Not yet.' });
+
+    var demo = $('demo'); demo.textContent = '';
+    var dm = p && p.demographics;
+    if (dm && dm.available) {
+      var g2 = el('div', 'grid2'); var a = el('div'); var g = el('div');
+      a.appendChild(el('h3', null, 'Age')); g.appendChild(el('h3', null, 'Gender'));
+      var ab = el('div'), gb = el('div'); a.appendChild(ab); g.appendChild(gb); g2.appendChild(a); g2.appendChild(g); demo.appendChild(g2);
+      bars(ab, dm.age, { label: function (x) { return x.bracket; }, value: function (x) { return x.visitors; } });
+      bars(gb, dm.gender, { label: function (x) { return x.gender.charAt(0).toUpperCase() + x.gender.slice(1); }, value: function (x) { return x.visitors; } });
+    } else {
+      demo.appendChild(el('p', 'empty', 'Age and gender aren’t shown yet. Google only reports them once its “Google signals” setting is on and enough people have visited, so this stays empty rather than guessing.'));
+    }
+
+    renderWix();
+    var foot = $('foot'); foot.textContent = '';
+    foot.appendChild(el('span', null, 'Numbers from Google Analytics, refreshed every morning' + (since ? ', counting since ' + since : '') + '. The most recent day can still shift a little while Google finishes counting it.'));
+    foot.appendChild(el('span', null, 'Visits you make yourself count too. Prepared by Just Sorted.'));
+  }
+
+  function renderWix() {
+    var h = HISTORY, box = $('wix');
+    if (!h || !h.sections || !Object.keys(h.sections).length) { box.hidden = true; return; }
+    box.hidden = false;
+    $('wix-sub').textContent = 'From the reports exported from the old Wix site' + (h.period ? ' (' + h.period + ')' : '') + '. Wix counted “site sessions”, so these sit beside the new numbers rather than being added to them.';
+    var body = $('wix-body'); body.textContent = '';
+    var S = h.sections;
+    var add = function (title, items, label, value) {
+      if (!items || !items.length) return;
+      var c = el('div'); c.appendChild(el('h3', null, title)); var b = el('div'); c.appendChild(b); body.appendChild(c);
+      bars(b, items.slice(0, 8), { label: label, value: value });
+    };
+    if (S.over_time && S.over_time.rows && S.over_time.rows.length) {
+      var c = el('div'); c.appendChild(el('h3', null, 'Over time'));
+      var total = S.over_time.rows.reduce(function (a, r) { return a + (r.sessions || 0); }, 0);
+      c.appendChild(el('p', 'lede', NF.format(total) + ' site sessions from ' + day(S.over_time.rows[0].date, { year: 'numeric' }) + ' to ' + day(S.over_time.rows[S.over_time.rows.length - 1].date, { year: 'numeric' }) + '.'));
+      body.appendChild(c);
+    }
+    add('Top pages', S.pages && S.pages.rows, function (r) { return r.name; }, function (r) { return r.value; });
+    add('Traffic sources', S.sources && S.sources.rows, function (r) { return r.name; }, function (r) { return r.value; });
+    add('Locations', S.locations && S.locations.rows, function (r) { return r.name; }, function (r) { return r.value; });
+    add('Devices', S.devices && S.devices.rows, function (r) { return r.name; }, function (r) { return r.value; });
+  }
+
+  var resizeTimer = null, lastW = 0;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () { var w = $('line').clientWidth; if (DATA && w && Math.abs(w - lastW) > 24) { lastW = w; lineChart($('line'), (DATA.daily || []).slice(-DAYS)); } }, 150);
+  });
+
+  document.querySelectorAll('.range button').forEach(function (b) {
+    b.addEventListener('click', function () { DAYS = Number(b.dataset.days); var dash = $('dash'); dash.classList.add('fade'); render(); requestAnimationFrame(function () { dash.classList.remove('fade'); }); });
+  });
+
+  var params = new URLSearchParams(location.search);
+  var key = params.get('k') || ((location.hash.match(/[#&]k=([^&]+)/) || [])[1] || '');
+  if (!key) { locked(); return; }
+  if (!/(^|\.)radarcarpentry\.com\.au$|\.vercel\.app$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) { locked('This page only works on radarcarpentry.com.au.'); return; }
+  fetch('/api/analytics?k=' + encodeURIComponent(key), { cache: 'no-store', credentials: 'omit' })
+    // every reply's body is read, so no request is left open (a 401 left unread kept the connection busy)
+    .then(function (r) {
+      if (r.status === 401) return r.text().then(function () { locked('That link isn’t right. Open the page with the link Dave sent you.'); return null; });
+      if (!r.ok) return r.text().then(function () { throw new Error('HTTP ' + r.status); });
+      return r.json();
+    })
+    .then(function (j) {
+      if (!j) return;
+      DATA = j.data || null; HISTORY = j.history || null;
+      $('loading').hidden = true; $('locked').hidden = true; $('dash').hidden = false;
+      render();
+    })
+    .catch(function () { locked('The numbers couldn’t be loaded just now. Try again in a minute.'); });
+})();
+</script>
+</body>
+</html>

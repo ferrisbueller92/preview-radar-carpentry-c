@@ -184,7 +184,12 @@
     var failed = function () { say('That didn’t go through, so your email app is opening with your message. Or call Kyle on 0467 210 448.'); openMail(); };
     // The old Wix site reported every enquiry to their Google Ads account as a lead ("Lead Event"). The live build sets
     // RADAR_ADS_LEAD beside the Google tag so this form keeps doing the same; nothing is sent where the tag is absent.
-    var lead = function () { if (window.RADAR_ADS_LEAD && typeof window.gtag === 'function') window.gtag('event', 'conversion', { send_to: window.RADAR_ADS_LEAD }); };
+    // Since 17 Sep 2026 the same delivered enquiry is also counted in Google Analytics as generate_lead, for the private analytics page.
+    var lead = function () {
+      if (typeof window.gtag !== 'function') return;
+      if (window.RADAR_ADS_LEAD) window.gtag('event', 'conversion', { send_to: window.RADAR_ADS_LEAD });
+      if (window.RADAR_GA4) window.gtag('event', 'generate_lead', { send_to: window.RADAR_GA4, form_type: 'enquiry' });
+    };
     if (btn) btn.disabled = true;
     say('Sending…');
     fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
