@@ -12,6 +12,12 @@
 // A bridge by design: it works while her Wix site still serves the name. Once her own Instagram connection is made (the
 // catch-up call), this reads that instead and Wix can be cancelled; until then, cancelling Wix stops this and the page
 // falls back to the snapshot.
+//
+// 17 Sep 2026: her own connection. When RADAR_IG_TOKEN is set on the Vercel project (the 60-day read-only key Instagram
+// hands over when Kyle taps Allow on /api/instagram-connect), this asks Instagram itself first (graph.instagram.com,
+// /me/media, shaped exactly like the snapshot, ids ig-<post id> as the bridge uses) and only falls back to Wix's servers
+// if that fails or no key is set. The nightly job (tools/radar_site_refresh.py, instagram_source "graph") reads this
+// answer and keeps local copies of the media, so nothing on the page depends on Instagram's picture servers.
 
 const https = require('https');
 
@@ -96,10 +102,103 @@ function shape(m) {
   return post;
 }
 
+// --- graph mapper (shared with round5/ig-connect/graph_mapper.js; keep identical) ---
+const GRAPH_HOST = 'graph.instagram.com';
+const GRAPH_FIELDS = 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,children{id,media_type,media_url,thumbnail_url}';
+
+function graphJSON(path, ms = 8000) {
+  // the path carries the key, so no error message ever quotes it
+  return new Promise((resolve, reject) => {
+    const req = https.request({ host: GRAPH_HOST, port: 443, method: 'GET', path, timeout: ms,
+      headers: { 'User-Agent': UA, Accept: 'application/json' } }, (res) => {
+      let data = '';
+      res.setEncoding('utf8');
+      res.on('data', (c) => { data += c; });
+      res.on('end', () => {
+        let body = null;
+        try { body = JSON.parse(data); } catch (e) { body = null; }
+        if (res.statusCode !== 200) {
+          const msg = body && body.error && body.error.message ? body.error.message : `answered ${res.statusCode}`;
+          return reject(new Error(`Instagram ${msg}`.slice(0, 160)));
+        }
+        if (!body) return reject(new Error('Instagram answered something other than JSON'));
+        resolve(body);
+      });
+    });
+    req.on('timeout', () => req.destroy(new Error('Instagram timed out')));
+    req.on('error', (e) => reject(new Error(`Instagram unreachable (${e.code || e.message})`)));
+    req.end();
+  });
+}
+
+function graphStill(m) {
+  // the picture a tile shows: the picture itself, a video's cover, or an album's first item
+  if (m.media_type === 'VIDEO') return m.thumbnail_url || '';
+  if (m.media_type === 'CAROUSEL_ALBUM') {
+    const first = m.children && m.children.data && m.children.data[0];
+    if (first) return first.media_type === 'VIDEO' ? (first.thumbnail_url || '') : (first.media_url || '');
+    return m.media_url || '';
+  }
+  return m.media_url || '';
+}
+
+function shapeGraph(m) {
+  const still = graphStill(m);
+  const flat = String(m.caption || '').replace(/\s+/g, ' ').trim();
+  const post = {
+    id: `ig-${m.id}`,
+    source: 'instagram',
+    timestamp: m.timestamp,
+    permalink: m.permalink,
+    mediaType: m.media_type,
+    caption: m.caption || '',
+    prunedCaption: pruned(m.caption),
+    altText: flat ? `Instagram post from RADAR Carpentry: ${flat.slice(0, 90)}` : 'Instagram post from RADAR Carpentry',
+    sizes: { medium: { mediaUrl: still }, large: { mediaUrl: still } },
+    mediaUrl: m.media_type === 'VIDEO' ? (m.media_url || '') : still,
+    thumbnailUrl: still,
+    isReel: /\/reel\//.test(m.permalink || ''),
+  };
+  const kids = m.media_type === 'CAROUSEL_ALBUM' && m.children && Array.isArray(m.children.data) ? m.children.data : [];
+  if (kids.length) {
+    post.children = kids.map((c) => {
+      const cv = c.media_type === 'VIDEO';
+      const cs = cv ? (c.thumbnail_url || '') : (c.media_url || '');
+      return { id: `ig-${c.id}`, mediaType: c.media_type, mediaUrl: c.media_url || '', thumbnailUrl: cs,
+               sizes: { medium: { mediaUrl: cs }, large: { mediaUrl: cs } } };
+    });
+  }
+  return post;
+}
+
+function mapMedia(data) {
+  return ((data && data.data) || []).filter((m) => m && m.id && m.permalink && (m.media_url || m.thumbnail_url)).map(shapeGraph);
+}
+
+async function fromInstagram(token) {
+  return mapMedia(await graphJSON(`/me/media?fields=${encodeURIComponent(GRAPH_FIELDS)}&limit=60&access_token=${encodeURIComponent(token)}`));
+}
+// --- end graph mapper ---
+
 module.exports = async (req, res) => {
   try {
-    let media = null;
     const errors = [];
+    // 1. Instagram itself, once Kyle has connected (RADAR_IG_TOKEN on the Vercel project, 17 Sep 2026)
+    const token = process.env.RADAR_IG_TOKEN;
+    if (token) {
+      try {
+        const posts = await fromInstagram(token);
+        if (posts.length) {
+          res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
+          return res.status(200).json({ username: USERNAME, source: 'instagram', fetchedAt: new Date().toISOString(), posts });
+        }
+        errors.push('Instagram answered with no posts');
+      } catch (e) {
+        errors.push(e.message);
+      }
+    }
+    // 2. the Wix bridge, while her Wix site still serves the name
+    let media = null;
     for (const ip of WIX_IPS) {
       try {
         media = await fromWix(ip);
